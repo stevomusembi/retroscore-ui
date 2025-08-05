@@ -60,9 +60,9 @@ export const retroScoreApi = {
   },
 
   // Submit guess (you'll need this later)
-  submitGuess: async (gameData: any) => {
+  submitGuess: async (userId:any, gameData: any) => {
     try {
-      const response = await apiClient.post('/game/submit-guess', gameData);
+      const response = await apiClient.post(`/game/guess?userId=${userId}`, gameData);
       return response.data;
     } catch (error:any) {
       throw new Error(`Failed to submit guess: ${error.message}`);

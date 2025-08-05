@@ -18,7 +18,7 @@ const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const [matchData, setMatchData] = useState<any>(null);
+  const [matchData, setMatchData] = useState<any>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [homeScore, setHomeScore] = useState('');
@@ -47,6 +47,7 @@ export default function HomeScreen() {
   };
 
   const submitGuess = async () => {
+    console.log("here then",matchData)
     if (!homeScore || !awayScore) {
       Alert.alert('Please enter both scores');
       return;
@@ -55,25 +56,30 @@ export default function HomeScreen() {
     try {
       setLoading(true);
       // Replace with your actual submit API call
+
       const guessData = {
-        matchId: matchData.id,
-        userId: 1,
-        homeScoreGuess: parseInt(homeScore),
-        awayScoreGuess: parseInt(awayScore)
-      };
+        matchId: matchData.matchId,
+        predictedHomeScore: parseInt(homeScore),
+        predictedAwayScore: parseInt(awayScore)
+      }
+      console.log("payload is =>",guessData)
       
+        const response = await retroScoreApi.submitGuess(1,guessData);
+        setResult(response);
+        setGamePhase('result');
+        console.log("response is =>",response);
+     
       // Mock result for now - replace with actual API call
-      const mockResult = {
-        correct: Math.random() > 0.5,
-        actualHomeScore: Math.floor(Math.random() * 4),
-        actualAwayScore: Math.floor(Math.random() * 4),
-        points: Math.random() > 0.5 ? 50 : 0
-      };
-      
-      setResult(mockResult);
-      setGamePhase('result');
+      // const mockResult = {
+      //   correct: Math.random() > 0.5,
+      //   actualHomeScore: Math.floor(Math.random() * 4),
+      //   actualAwayScore: Math.floor(Math.random() * 4),
+      //   points: Math.random() > 0.5 ? 50 : 0
+      // };
+     
     } catch (err: any) {
       Alert.alert('Error', err.message);
+      console.log("Error", err);
     } finally {
       setLoading(false);
     }
