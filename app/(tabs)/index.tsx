@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -23,7 +24,7 @@ export default function HomeScreen() {
   const [error, setError] = useState(null);
   const [homeScore, setHomeScore] = useState('');
   const [awayScore, setAwayScore] = useState('');
-  const [gamePhase, setGamePhase] = useState('playing'); // 'playing', 'result'
+  const [gamePhase, setGamePhase] = useState('playing');
   const [result, setResult] = useState<any>(null);
 
   const fetchRandomMatch = async () => {
@@ -38,6 +39,7 @@ export default function HomeScreen() {
       const data = await retroScoreApi.getRandomMatch(1);
       setMatchData(data);
       console.log("matchData=> ", data);
+     
     } catch (err: any) {
       setError(err.message);
       console.log("Error", err);
@@ -55,8 +57,6 @@ export default function HomeScreen() {
 
     try {
       setLoading(true);
-      // Replace with your actual submit API call
-
       const guessData = {
         matchId: matchData.matchId,
         predictedHomeScore: parseInt(homeScore),
@@ -68,14 +68,6 @@ export default function HomeScreen() {
         setResult(response);
         setGamePhase('result');
         console.log("response is =>",response);
-     
-      // Mock result for now - replace with actual API call
-      // const mockResult = {
-      //   correct: Math.random() > 0.5,
-      //   actualHomeScore: Math.floor(Math.random() * 4),
-      //   actualAwayScore: Math.floor(Math.random() * 4),
-      //   points: Math.random() > 0.5 ? 50 : 0
-      // };
      
     } catch (err: any) {
       Alert.alert('Error', err.message);
@@ -111,13 +103,10 @@ export default function HomeScreen() {
             {result.correct ? '🏆' : '😅'}
           </ThemedText>
           <ThemedText style={styles.resultTitle}>
-            {result.correct ? 'CORRECT WINNER!' : 'NOT QUITE!'}
+            {result.isCorrectScore && result.isCorrectResult ? 'AMAZING!!, CORRECT SCORE!' : result.isCorrectResult && !result.isCorrectScore ? 'ALMOST !!, NOT QUITE!' : 'OH NO, WAY OFF'}
           </ThemedText>
           <ThemedText style={styles.resultSubtitle}>
-            {result.correct 
-              ? `Good job! You picked the right score!`
-              : `Better luck next time! Football is unpredictable!`
-            }
+            {result.resultMessage }
           </ThemedText>
         </ThemedView>
 
@@ -165,7 +154,7 @@ export default function HomeScreen() {
         {/* Points */}
         <ThemedView style={styles.pointsContainer}>
           <ThemedText style={styles.pointsText}>
-            🏆 {result.correct ? '+50' : '+0'} Points
+            🏆 {result.userGamePoints} Points
           </ThemedText>
         </ThemedView>
 
@@ -187,7 +176,7 @@ export default function HomeScreen() {
       <ThemedView style={styles.header}>
         <ThemedText style={styles.appTitle}>Memory Match</ThemedText>
         <ThemedText style={styles.league}>
-          {matchData?.league || 'Premier League'} • {matchData?.season || '2019-2020'}
+          {matchData?.league || 'Premier League'} • {matchData?.seasonName || '2019-2020'}
         </ThemedText>
       </ThemedView>
 
@@ -219,7 +208,7 @@ export default function HomeScreen() {
             <ThemedView style={styles.vsContainer}>
               <ThemedText style={styles.vsText}>VS</ThemedText>
               <ThemedText style={styles.matchDate}>
-                ⚽
+                {format(new Date(matchData.matchDate), 'EEE, dd MMMM yyyy')}
               </ThemedText>
             </ThemedView>
 
@@ -244,15 +233,15 @@ export default function HomeScreen() {
                 <ThemedView style={styles.flipBoard}>
                   <ThemedView style={styles.flipBoardTop}>
                     <ThemedText style={styles.flipBoardNumber}>
-                      {homeScore || '0'}
+                      {homeScore || '-'}
                     </ThemedText>
                   </ThemedView>
-                  <ThemedView style={styles.flipBoardDivider} />
+                  {/* <ThemedView style={styles.flipBoardDivider} />
                   <ThemedView style={styles.flipBoardBottom}>
                     <ThemedText style={styles.flipBoardNumber}>
                       {homeScore || '0'}
                     </ThemedText>
-                  </ThemedView>
+                  </ThemedView> */}
                   <TextInput
                     style={styles.hiddenInput}
                     value={homeScore}
@@ -277,15 +266,15 @@ export default function HomeScreen() {
                 <ThemedView style={styles.flipBoard}>
                   <ThemedView style={styles.flipBoardTop}>
                     <ThemedText style={styles.flipBoardNumber}>
-                      {awayScore || '0'}
+                      {awayScore || '-'}
                     </ThemedText>
                   </ThemedView>
-                  <ThemedView style={styles.flipBoardDivider} />
+                  {/* <ThemedView style={styles.flipBoardDivider} />
                   <ThemedView style={styles.flipBoardBottom}>
                     <ThemedText style={styles.flipBoardNumber}>
                       {awayScore || '0'}
                     </ThemedText>
-                  </ThemedView>
+                  </ThemedView> */}
                   <TextInput
                     style={styles.hiddenInput}
                     value={awayScore}

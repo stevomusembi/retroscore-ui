@@ -1,8 +1,39 @@
+import { useEffect, useState } from 'react';
 import { SafeAreaView, StyleSheet } from 'react-native';
 import { ThemedText } from '../components/ThemedText';
 import { ThemedView } from '../components/ThemedView';
+import retroScoreApi from '../services/api';
 
 export default function ProfileScreen() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [statsData, setStatsData] = useState<any>();
+
+
+  const getUserStats = async () => {
+  setLoading(true);
+  setError(null);
+
+  try {
+    const data = await retroScoreApi.getUserStats(1);
+    setStatsData(data);
+    console.log("stats data => ", data);
+
+  } catch (err:any){
+    setError(err.message);
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+    
+  };
+
+  useEffect(()=>{
+    getUserStats();
+  },[]);
+
+
+
   return (
     <SafeAreaView style={styles.container}>
       <ThemedView style={styles.content}>
@@ -12,9 +43,9 @@ export default function ProfileScreen() {
         {/* You can add user stats, achievements, etc. here */}
         <ThemedView style={styles.statsContainer}>
           <ThemedText style={styles.statsTitle}>Your Stats</ThemedText>
-          <ThemedText style={styles.statsText}>Games Played: 0</ThemedText>
-          <ThemedText style={styles.statsText}>Correct Guesses: 0</ThemedText>
-          <ThemedText style={styles.statsText}>Total Points: 0</ThemedText>
+          <ThemedText style={styles.statsText}>Games Played: {statsData.matchesPlayed}</ThemedText> 
+           <ThemedText style={styles.statsText}>Correct Guesses: {statsData.matchesPredictedCorrectScore}</ThemedText>
+           <ThemedText style={styles.statsText}>Total Points: {statsData.totalPoints}</ThemedText> 
         </ThemedView>
       </ThemedView>
     </SafeAreaView>

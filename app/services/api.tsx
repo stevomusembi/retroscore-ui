@@ -15,7 +15,6 @@ const getBaseUrl = () => {
 
 const API_BASE_URL = getBaseUrl();
 
-// Create axios instance with default config
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000, // 10 seconds timeout
@@ -24,7 +23,7 @@ const apiClient = axios.create({
   },
 });
 
-// Add request interceptor for logging (optional)
+//  request interceptor for logging (optional)
 apiClient.interceptors.request.use(
   (config) => {
     console.log('API Request:', config.method?.toUpperCase(), config.url);
@@ -36,7 +35,7 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Add response interceptor for error handling
+//  response interceptor for error handling
 apiClient.interceptors.response.use(
   (response) => {
     console.log('API Response:', response.status, response.data);
@@ -59,13 +58,21 @@ export const retroScoreApi = {
     }
   },
 
-  // Submit guess (you'll need this later)
   submitGuess: async (userId:any, gameData: any) => {
     try {
       const response = await apiClient.post(`/game/guess?userId=${userId}`, gameData);
       return response.data;
     } catch (error:any) {
       throw new Error(`Failed to submit guess: ${error.message}`);
+    }
+  },
+
+  getUserStats: async (userId:any) => {
+    try {
+      const response = await apiClient.get(`/user/stats?userId=${userId}`);
+      return response.data;
+    } catch (error:any) {
+      throw new Error(`Failed to get stats: ${error.message}`);
     }
   },
 };
