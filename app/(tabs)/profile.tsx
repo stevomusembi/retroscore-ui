@@ -9,43 +9,40 @@ export default function ProfileScreen() {
   const [error, setError] = useState(null);
   const [statsData, setStatsData] = useState<any>();
 
-
   const getUserStats = async () => {
-  setLoading(true);
-  setError(null);
+    setLoading(true);
+    setError(null);
 
-  try {
-    const data = await retroScoreApi.getUserStats(1);
-    setStatsData(data);
-    console.log("stats data => ", data);
-
-  } catch (err:any){
-    setError(err.message);
-    console.error(err);
-  } finally {
-    setLoading(false);
-  }
-    
+    try {
+      const data: any = await retroScoreApi.getUserStats(1);
+      setStatsData(data);
+      console.log("stats data => ", data);
+    } catch (err: any) {
+      setError(err.message);
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     getUserStats();
-  },[]);
-
-
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
       <ThemedView style={styles.content}>
         <ThemedText style={styles.title}>Profile</ThemedText>
         <ThemedText style={styles.subtitle}>Coming soon...</ThemedText>
-        
+
         {/* You can add user stats, achievements, etc. here */}
         <ThemedView style={styles.statsContainer}>
           <ThemedText style={styles.statsTitle}>Your Stats</ThemedText>
-          <ThemedText style={styles.statsText}>Games Played: {statsData.matchesPlayed}</ThemedText> 
-           <ThemedText style={styles.statsText}>Correct Guesses: {statsData.matchesPredictedCorrectScore}</ThemedText>
-           <ThemedText style={styles.statsText}>Total Points: {statsData.totalPoints}</ThemedText> 
+          <ThemedText style={styles.statsText}>Games Played: {statsData?.matchesPlayed ?? 'Loading...'}</ThemedText>
+          <ThemedText style={styles.statsText}>Correct Guesses: {statsData?.matchesPredictedCorrectScore ?? 'Loading...'}</ThemedText>
+          <ThemedText style={styles.statsText}>Total Points: {statsData?.totalPoints ?? 'Loading...'}</ThemedText>
+          <ThemedText style={styles.statsText}>Win Percentage: {statsData?.winPercentage ?? 'Loading...'}%</ThemedText>
+         
         </ThemedView>
       </ThemedView>
     </SafeAreaView>
