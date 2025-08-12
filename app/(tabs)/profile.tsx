@@ -33,7 +33,6 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.container}>
       <ThemedView style={styles.content}>
         <ThemedText style={styles.title}>Profile</ThemedText>
-        <ThemedText style={styles.subtitle}>Coming soon...</ThemedText>
 
         {/* You can add user stats, achievements, etc. here */}
         <ThemedView style={styles.statsContainer}>

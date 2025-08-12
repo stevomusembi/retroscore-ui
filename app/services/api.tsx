@@ -75,6 +75,15 @@ export const retroScoreApi = {
       throw new Error(`Failed to get stats: ${error.message}`);
     }
   },
+
+   getUserSettings: async (userId:any) => {
+    try {
+      const response = await apiClient.get(`/settings/${userId}`);
+      return response.data;
+    } catch (error:any) {
+      throw new Error(`Failed to get settings: ${error.message}`);
+    }
+  },
 };
 
 export default retroScoreApi;
