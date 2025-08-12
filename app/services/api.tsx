@@ -84,6 +84,42 @@ export const retroScoreApi = {
       throw new Error(`Failed to get settings: ${error.message}`);
     }
   },
+  updateUserSettings:async (userId:any, settings:any)=>{
+    try{
+      const response = await apiClient.post(`settings/${userId}`, settings);
+      return response.data;
+    }catch(error:any){
+      throw new Error(`Failed to update settings: ${error.message}`);
+    }
+  },
+    updatLeaguePreferrence:async (userId:any, leagueId:string)=>{
+    try{
+      const response = await apiClient.patch(`settings/${userId}/preferredLeague?leagueId=${leagueId}`);
+      return response.data;
+        
+    } catch(err:any){
+      throw new Error(`Failed to update preferd league, :${err.message}`);
+    }
+  },
+  updateGameDifficulty:async (userId:any, difficulty:string)=>{
+    try{
+      const response = await apiClient.patch(`settings/${userId}/difficulty?difficulty=${difficulty}`);
+      return response.data;
+        
+    } catch(err:any){
+      throw new Error(`Failed to update game difficulty, :${err.message}`);
+    }
+  },
+   updateNotification:async (userId:any,enabled:boolean)=>{
+    try{
+      const response = await apiClient.patch(`settings/${userId}/notifications?enabled=${enabled}`);
+      return response.data;
+        
+    } catch(err:any){
+      throw new Error(`Failed to update game notifications, :${err.message}`);
+    }
+  }
+
 };
 
 export default retroScoreApi;
