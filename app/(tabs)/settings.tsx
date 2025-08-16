@@ -25,6 +25,7 @@ interface UserSettings {
   preferredLeague?: string;
   gameDifficulty?: string;
   notificationsEnabled?: boolean;
+  hintEnabled?:boolean;
 }
 
 const LEAGUES: League[] = [
@@ -36,10 +37,10 @@ const LEAGUES: League[] = [
 ];
 
 const DIFFICULTIES = [
-  { id: 'easy', name: 'Easy', description: 'Perfect for beginners', color: '#4CAF50' },
-  { id: 'medium', name: 'Medium', description: 'Balanced challenge', color: '#FF9800' },
-  { id: 'hard', name: 'Hard', description: 'For experienced players', color: '#F44336' },
-  { id: 'expert', name: 'Expert', description: 'Ultimate challenge', color: '#9C27B0' },
+  { id: 'EASY', name: 'Easy', description: 'Perfect for beginners', color: '#4CAF50' },
+  { id: 'MEDIUM', name: 'Medium', description: 'Balanced challenge', color: '#FF9800' },
+  { id: 'HARD', name: 'Hard', description: 'For experienced players', color: '#F44336' },
+  { id: 'EXPERT', name: 'Expert', description: 'Ultimate challenge', color: '#9C27B0' },
 ];
 
 export default function SettingsScreen() {
@@ -67,21 +68,6 @@ export default function SettingsScreen() {
       setLoading(false);
     }
   };
-
-  // const updateLeaguePreference = async (leagueId: string) => {
-  //   try {
-  //     setLoading(true);
-  //     const updatedSettings = { ...settingsData, preferredLeague: leagueId };
-  //     await retroScoreApi.updateUserSettings(1, updatedSettings);
-  //     setSettingsData(updatedSettings);
-  //     setLeagueModalVisible(false); // Auto-close modal
-  //   } catch (err: any) {
-  //     Alert.alert('Error', 'Failed to update league preference');
-  //     console.error(err);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
    const updateLeaguePreference = async (leagueId:string) => {
     try {
@@ -127,6 +113,20 @@ export default function SettingsScreen() {
     }
   };
 
+   const updateHint = async (enabled: boolean) => {
+    try {
+      setLoading(true);
+      await retroScoreApi.updateHint(1, enabled);
+      setSettingsData({ ...settingsData, hintEnabled: enabled });
+      Alert.alert('Success', `Hint ${enabled ? 'enabled' : 'disabled'}!`);
+    } catch (err: any) {
+      Alert.alert('Error', 'Failed to update hint');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     getUserSettings();
   }, []);
@@ -158,6 +158,21 @@ export default function SettingsScreen() {
           </ThemedView>
         </ThemedView>
 
+             {/* hints Toggle */}
+        <ThemedView style={styles.notificationContainer}>
+          <ThemedView style={styles.notificationRow}>
+            <ThemedText style={styles.notificationLabel}>💡 Show hint </ThemedText>
+            <Switch
+              trackColor={{ false: '#767577', true: '#4CAF50' }}
+              thumbColor={settingsData.hintEnabled ? '#fff' : '#f4f3f4'}
+              onValueChange={updateHint}
+              value={settingsData.hintEnabled || false}
+              disabled={loading}
+            />
+          </ThemedView>
+        </ThemedView>
+
+
         <ThemedView style={styles.settingsList}>
           {/* League Preferences */}
           <TouchableOpacity 
@@ -170,7 +185,7 @@ export default function SettingsScreen() {
                 <ThemedText style={styles.settingText}>🏆 League Preferences</ThemedText>
                 <ThemedText style={styles.currentValueDisplay}>
                   {getSelectedLeague() 
-                    ? `${getSelectedLeague()?.flag} ${getSelectedLeague()?.name}`
+                    ? `${getSelectedLeague()?.name} ${getSelectedLeague()?.flag} `
                     : "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League"
                   }
                 </ThemedText>
@@ -384,7 +399,7 @@ const styles = StyleSheet.create({
   settingContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     width: '100%',
   },
   settingTextContainer: {
@@ -400,6 +415,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999',
     fontWeight: '400',
+    marginLeft:5,
   },
   chevronIcon: {
     fontSize: 24,

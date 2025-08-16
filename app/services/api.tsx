@@ -118,6 +118,15 @@ export const retroScoreApi = {
     } catch(err:any){
       throw new Error(`Failed to update game notifications, :${err.message}`);
     }
+  },
+  updateHint:async (userId:any,enabled:boolean)=>{
+    try{
+      const response = await apiClient.patch(`settings/${userId}/hint?enabled=${enabled}`);
+      return response.data;
+        
+    } catch(err:any){
+      throw new Error(`Failed to update game hint, :${err.message}`);
+    }
   }
 
 };

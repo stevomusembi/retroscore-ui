@@ -49,7 +49,6 @@ export default function HomeScreen() {
   };
 
   const submitGuess = async () => {
-    console.log("here then",matchData)
     if (!homeScore || !awayScore) {
       Alert.alert('Please enter both scores');
       return;
@@ -210,6 +209,7 @@ export default function HomeScreen() {
               <ThemedText style={styles.matchDate}>
                 {format(new Date(matchData.matchDate), 'EEE, dd MMMM yyyy')}
               </ThemedText>
+              <ThemedText style={styles.matchStadium}>{matchData.stadiumName}</ThemedText>
             </ThemedView>
 
             {/* Away Team */}
@@ -416,7 +416,13 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   matchDate: {
-    fontSize: 24,
+    fontSize: 18,
+  },
+  matchStadium : {
+    fontSize:14,
+    color:'#fff',
+
+
   },
   scoreInputContainer: {
     alignItems: 'center',
