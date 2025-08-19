@@ -49,9 +49,9 @@ apiClient.interceptors.response.use(
 
 export const retroScoreApi = {
   // Get random match
-  getRandomMatch: async (userId: any = 1 ) => {
+  getRandomMatch: async (userId: number = 2 ) => {
     try {
-      const response = await apiClient.get(`/game/random-match?userId=${userId}`);
+      const response = await apiClient.get(`/game/random-match?userId=${userId}&teamId=8`);
       return response.data;
     } catch (error:any) {
       throw new Error(`Failed to fetch random match: ${error.message}`);

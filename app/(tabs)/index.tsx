@@ -15,6 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '../components/ThemedText';
 import retroScoreApi from '../services/api';
+import { getFullLogoUrl } from '../utils/logoUtils';
 
 
 // Helper function to generate team colors
@@ -321,46 +322,66 @@ export default function HomeScreen() {
       </View>
 
       {matchData && (
-        <>
-          {/* Teams Display */}
-          <View style={styles.teamsContainer}>
-            {/* Home Team */}
-            <View style={styles.teamContainer}>
-              <View style={[styles.teamLogo, { backgroundColor: homeColors.primary }]}>
-                {matchData.homeTeam?.logo ? (
-                  <Image source={{ uri: matchData.homeTeam.logo }} style={styles.logoImage} />
-                ) : (
-                  <ThemedText style={styles.teamLogoText}>
-                    {matchData.homeTeam?.name?.substring(0, 2).toUpperCase() || 'HO'}
-                  </ThemedText>
-                )}
-              </View>
-              <ThemedText style={styles.teamName} numberOfLines={2}>
-                {matchData.homeTeam?.name || 'Home Team'}
-              </ThemedText>
-            </View>
+  <>
+    {/* Teams Display */}
+    <View style={styles.teamsContainer}>
+      {/* Home Team */}
+      <View style={styles.teamContainer}>
+        <View style={[
+          styles.teamLogo, 
+          !matchData.homeTeam?.logoUrl && { backgroundColor: homeColors.primary }
+          ]}>
+          {matchData.homeTeam?.logoUrl ? (
+            <Image
+              source={{ uri: getFullLogoUrl(matchData.homeTeam.logoUrl) }}
+              style={styles.logoImage}
+              resizeMode="contain" // This ensures consistent sizing!
+              onError={(error) => {
+                console.log('Home team logo failed to load:', error.nativeEvent.error);
+              }}
+            />
+          ) : (
+            <ThemedText style={styles.teamLogoText}>
+              {matchData.homeTeam?.name?.substring(0, 2).toUpperCase() || 'HO'}
+            </ThemedText>
+          )}
+        </View>
+        <ThemedText style={styles.teamName} numberOfLines={2}>
+          {matchData.homeTeam?.name || 'Home Team'}
+        </ThemedText>
+      </View>
 
-            {/* VS */}
-            <View style={styles.vsContainer}>
-              <ThemedText style={styles.vsText}>VS</ThemedText>
-            </View>
+      {/* VS */}
+      <View style={styles.vsContainer}>
+        <ThemedText style={styles.vsText}>VS</ThemedText>
+      </View>
 
-            {/* Away Team */}
-            <View style={styles.teamContainer}>
-              <View style={[styles.teamLogo, { backgroundColor: awayColors.primary }]}>
-                {matchData.awayTeam?.logo ? (
-                  <Image source={{ uri: matchData.awayTeam.logo }} style={styles.logoImage} />
-                ) : (
-                  <ThemedText style={styles.teamLogoText}>
-                    {matchData.awayTeam?.name?.substring(0, 2).toUpperCase() || 'AW'}
-                  </ThemedText>
-                )}
-              </View>
-              <ThemedText style={styles.teamName} numberOfLines={2}>
-                {matchData.awayTeam?.name || 'Away Team'}
-              </ThemedText>
-            </View>
-          </View>
+      {/* Away Team */}
+      <View style={styles.teamContainer}>
+        <View style={[
+           styles.teamLogo, 
+           !matchData.homeTeam?.logoUrl && { backgroundColor: homeColors.primary }
+           ]}>
+          {matchData.awayTeam?.logoUrl ? (
+            <Image
+              source={{ uri: getFullLogoUrl(matchData.awayTeam.logoUrl) }}
+              style={styles.logoImage}
+              resizeMode="contain" // This ensures consistent sizing!
+              onError={(error) => {
+                console.log('Away team logo failed to load:', error.nativeEvent.error);
+              }}
+            />
+          ) : (
+            <ThemedText style={styles.teamLogoText}>
+              {matchData.awayTeam?.name?.substring(0, 2).toUpperCase() || 'AW'}
+            </ThemedText>
+          )}
+        </View>
+        <ThemedText style={styles.teamName} numberOfLines={2}>
+          {matchData.awayTeam?.name || 'Away Team'}
+        </ThemedText>
+      </View>
+    </View>
 
           {/* Match Info - Moved below teams */}
           <View style={styles.matchInfoContainer}>
@@ -530,8 +551,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     maxWidth: 120,
-  },
-  teamsContainer: {
+  }, teamsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -543,13 +563,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   teamLogo: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+    width: 120,
+    height: 120,
+    borderRadius: 60, // Make it perfectly circular (width/2)
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
-    shadowColor: '#000',
+    // shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 4,
@@ -557,16 +577,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+    overflow: 'hidden', // Ensures content stays within circle
   },
   logoImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 100,  // Slightly smaller than container
+    height: 100, // Make it square for consistent aspect ratio
+    // Remove borderRadius - the parent container handles the circular crop
   },
   teamLogoText: {
-    fontSize: 18,
+    fontSize: 24, // Slightly larger for better visibility
     fontWeight: '700',
     color: '#FFFFFF',
+    textAlign: 'center',
   },
   teamName: {
     fontSize: 14,
