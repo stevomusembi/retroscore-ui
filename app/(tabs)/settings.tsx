@@ -58,7 +58,7 @@ export default function SettingsScreen() {
     setError(null);
     
     try {
-      const data: UserSettings = await retroScoreApi.getUserSettings(1);
+      const data: UserSettings = await retroScoreApi.getUserSettings(2);
       setSettingsData(data);
       console.log("settings data => ", data);
     } catch (err: any) {
@@ -356,11 +356,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1a1a1a',
-    paddingTop:40
   },
   content: {
     flex: 1,
     padding: 20,
+    paddingTop:60
   },
   title: {
     fontSize: 32,

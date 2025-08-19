@@ -16,7 +16,7 @@ export default function TabLayout() {
           borderTopWidth: 1,
           paddingBottom: Math.max(insets.bottom, 40), // Dynamic padding based on device
           paddingTop: 8,
-          height: 60 + Math.max(insets.bottom, 20), // Dynamic height
+          height: 50 + Math.max(insets.bottom, 20), // Dynamic height
           position: 'absolute',
           bottom: 0,
         },
@@ -34,7 +34,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <Ionicons 
               name={focused ? 'home' : 'home-outline'} 
-              size={24} 
+              size={20} 
               color={color} 
             />
           ),
@@ -47,7 +47,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <Ionicons 
               name={focused ? 'trophy' : 'trophy-outline'} 
-              size={24} 
+              size={20} 
               color={color} 
             />
           ),
@@ -60,7 +60,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <Ionicons 
               name={focused ? 'settings' : 'settings-outline'} 
-              size={24} 
+              size={20} 
               color={color} 
             />
           ),
