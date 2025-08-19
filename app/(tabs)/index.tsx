@@ -36,7 +36,7 @@ export default function HomeScreen() {
     setResult(null);
 
     try {
-      const data = await retroScoreApi.getRandomMatch(1);
+      const data = await retroScoreApi.getRandomMatch(2);
       setMatchData(data);
       console.log("matchData=> ", data);
      
@@ -63,7 +63,7 @@ export default function HomeScreen() {
       }
       console.log("payload is =>",guessData)
       
-        const response = await retroScoreApi.submitGuess(1,guessData);
+        const response = await retroScoreApi.submitGuess(2,guessData);
         setResult(response);
         setGamePhase('result');
         console.log("response is =>",response);
@@ -324,6 +324,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1a1a1a',
+    paddingTop:40
   },
   correctBg: {
     backgroundColor: '#2d5a27',

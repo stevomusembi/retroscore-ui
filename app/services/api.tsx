@@ -67,14 +67,14 @@ export const retroScoreApi = {
     }
   },
 
-  getUserStats: async (userId:any) => {
-    try {
-      const response = await apiClient.get(`/user/stats?userId=${userId}`);
-      return response.data;
-    } catch (error:any) {
-      throw new Error(`Failed to get stats: ${error.message}`);
-    }
-  },
+  // getUserStats: async (userId:any) => {
+  //   try {
+  //     const response = await apiClient.get(`/user/stats?userId=${userId}`);
+  //     return response.data;
+  //   } catch (error:any) {
+  //     throw new Error(`Failed to get stats: ${error.message}`);
+  //   }
+  // },
 
    getUserSettings: async (userId:any) => {
     try {
@@ -125,9 +125,25 @@ export const retroScoreApi = {
       return response.data;
         
     } catch(err:any){
-      throw new Error(`Failed to update game hint, :${err.message}`);
+      throw new Error(`Failed to update game , :${err.message}`);
     }
-  }
+  },
+    getLeaderBoard: async (page:number = 0,size:number =20) => {
+    try {
+      const response = await apiClient.get(`/leaderboard?page=${page}&size=${size}`);
+      return response.data;
+    } catch (error:any) {
+      throw new Error(`Failed to get leader board: ${error.message}`);
+    }
+  },
+  getUserStats: async (userId:number) => {
+    try {
+      const response = await apiClient.get(`leaderboard/user/${userId}`);
+      return response.data;
+    } catch (error:any) {
+      throw new Error(`Failed to get user rank: ${error.message}`);
+    }
+  },
 
 };
 
