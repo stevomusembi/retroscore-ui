@@ -1,50 +1,129 @@
-# Welcome to your Expo app 👋
+# 📱 RetroScore Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+> A nostalgic EPL score guessing game built with Expo/React Native
 
-## Get started
+Test your memory of historical Premier League matches! Login, get a random match from EPL history, guess the score, and see how well you remember football history.
 
-1. Install dependencies
+## 🎮 How It Works
 
-   ```bash
-   npm install
-   ```
+1. **Register/Login** → Create account or sign in
+2. **Home Screen** → View your stats and start new games  
+3. **Game Screen** → Get random historical match, guess the score
+4. **Results** → See if you were right and your updated stats
+5. **Leaderboard** → Compare your performance with other players
+6. **Settings** → Configure notifications, hints, and time limits
 
-2. Start the app
+## 🚀 Quick Start
 
-   ```bash
-   npx expo start
-   ```
+### Prerequisites
+- Node.js (16+)
+- Expo CLI: `npm install -g @expo/cli`
+- RetroScore Backend running on `http://localhost:8080`
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+### Setup & Run
 ```bash
-npm run reset-project
+# Clone the repository
+git clone <your-repo-url>
+cd retroscore-mobile
+
+# Install dependencies
+npm install
+
+# Configure API endpoint (if different from localhost:8080)
+# Edit the API_BASE_URL in your config file
+
+# Start the development server
+npx expo start
+
+# Run on device/simulator
+# Scan QR code with Expo Go app (iOS/Android)
+# Or press 'i' for iOS simulator, 'a' for Android emulator
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Backend Configuration
+Make sure your Spring Boot backend is running with:
+- **Port**: 8080 (default)
+- **CORS enabled** for mobile app requests
+- **JWT authentication** configured
+- **Match data imported** from CSV files
 
-## Learn more
+## 🏗️ Architecture
 
-To learn more about developing your project with Expo, look at the following resources:
+The app follows a clean component-based architecture with separate services for API communication and authentication management.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## 📱 Tech Stack
+- **Expo/React Native** - Cross-platform mobile development
+- **React Navigation** - Screen navigation
+- **Axios** - HTTP client for API calls  
+- **JWT** - Authentication tokens
+- **AsyncStorage** - Local data persistence
 
-## Join the community
+---
 
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+*Backend repository: [RetroScore API](https://github.com/stevomusembi/retroscore)*
+```mermaid
+graph TB
+    %% Mobile App Layer
+    subgraph "RetroScore Mobile App - Expo/React Native"
+        subgraph "Screens"
+            Login["🔐 Login Screen"]
+            Register["📝 Register Screen"]
+            Home["🏠 Home Screen"]
+            Game["🎮 Game Screen"]
+            Results["📊 Results Screen"]
+            Leaderboard["🏆 Leaderboard/Stats Screen"]
+            Settings["⚙️ Settings Screen"]
+        end
+        
+        subgraph "Services"
+            AuthService["🔑 Authentication Service"]
+            APIService["🌐 API Service - HTTP Client"]
+        end
+        
+        subgraph "Components"
+            MatchCard["⚽ Match Card Component"]
+            ScoreInput["🎯 Score Input Component"]
+            StatsDisplay["📈 Statistics Display"]
+        end
+    end
+    
+    %% Backend Communication
+    Backend["🖥️ Spring Boot Backend API - JWT Auth | Game Logic | Match Data"]
+    
+    %% Database
+    DB[("🗄️ Database")]
+    
+    %% Mobile App Flow
+    Login --> AuthService
+    Register --> AuthService
+    Home --> APIService
+    Game --> APIService
+    Results --> APIService
+    Leaderboard --> APIService
+    Settings --> APIService
+    
+    Game --> MatchCard
+    Game --> ScoreInput
+    Results --> StatsDisplay
+    Leaderboard --> StatsDisplay
+    
+    %% API Communications
+    AuthService --> Backend
+    APIService --> Backend
+    
+    %% Backend to Database
+    Backend --> DB
+    
+    %% Styling
+    classDef mobile fill:#e3f2fd,stroke:#1976d2,stroke-width:3px,color:#000000
+    classDef service fill:#f3e5f5,stroke:#7b1fa2,stroke-width:3px,color:#000000
+    classDef component fill:#e8f5e8,stroke:#388e3c,stroke-width:3px,color:#000000
+    classDef backend fill:#fff3e0,stroke:#f57c00,stroke-width:3px,color:#000000
+    classDef database fill:#fce4ec,stroke:#c2185b,stroke-width:3px,color:#000000
+    
+    class Login,Register,Home,Game,Results,Leaderboard,Settings mobile
+    class AuthService,APIService service
+    class MatchCard,ScoreInput,StatsDisplay component
+    class Backend backend
+    class DB database
+    ```
