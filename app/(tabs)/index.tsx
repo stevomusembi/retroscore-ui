@@ -15,7 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '../components/ThemedText';
 import retroScoreApi from '../services/api';
-import { getFullLogoUrl } from '../utils/logoUtils';
+import { debugLogoLoading, getFullLogoUrl } from '../utils/logoUtils';
 
 
 // Helper function to generate team colors
@@ -55,6 +55,8 @@ const ScoreWheel = ({ value, onValueChange, teamColor }: { value: number, onValu
   useEffect(() => {
     scrollToValue(value);
   }, []);
+
+   
 
   return (
     <View style={[styles.scoreWheelContainer, { borderColor: teamColor }]}>
@@ -171,6 +173,13 @@ export default function HomeScreen() {
   useEffect(() => {
     fetchRandomMatch();
   }, []);
+
+  useEffect(() => {
+    if (matchData) {
+      console.log('🎯 Match Data received:', matchData);
+      debugLogoLoading(matchData);
+    }
+  }, [matchData]);
 
   if (loading && !matchData) {
     return (
@@ -336,8 +345,13 @@ export default function HomeScreen() {
               source={{ uri: getFullLogoUrl(matchData.homeTeam.logoUrl) }}
               style={styles.logoImage}
               resizeMode="contain" // This ensures consistent sizing!
+              onLoadStart={() => console.log('🟡 Home logo loading started')}
+              onLoad={() => console.log('✅ Home logo loaded successfully')}
               onError={(error) => {
-                console.log('Home team logo failed to load:', error.nativeEvent.error);
+              console.log('❌ Home logo failed to load:', error.nativeEvent.error);
+              console.log('🔍 Attempted URL:', getFullLogoUrl(matchData.homeTeam.logoUrl));
+              // onError={(error) => {
+              //   console.log('Home team logo failed to load:', error.nativeEvent.error);
               }}
             />
           ) : (

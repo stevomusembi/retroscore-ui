@@ -51,7 +51,7 @@ export const retroScoreApi = {
   // Get random match
   getRandomMatch: async (userId: number = 2 ) => {
     try {
-      const response = await apiClient.get(`/game/random-match?userId=${userId}&teamId=8`);
+      const response = await apiClient.get(`/game/random-match?userId=${userId}`);
       return response.data;
     } catch (error:any) {
       throw new Error(`Failed to fetch random match: ${error.message}`);
