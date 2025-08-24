@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -13,107 +13,28 @@ import {
   View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ScoreWheel } from '../components/ScrollWheel';
 import { ThemedText } from '../components/ThemedText';
 import retroScoreApi from '../services/api';
 import { debugLogoLoading, getFullLogoUrl } from '../utils/logoUtils';
 
 
-// Helper function to generate team colors
-const generateTeamColors = (teamName: string, index: number) => {
-  const colorPairs = [
-    { primary: '#FF6B6B', secondary: '#4ECDC4' },
-    { primary: '#45B7D1', secondary: '#96CEB4' },
-    { primary: '#bdae7aaf', secondary: '#DDA0DD' },
-    { primary: '#98D8C8', secondary: '#F7DC6F' },
-    { primary: '#A8E6CF', secondary: '#FFB7B2' },
-    { primary: '#B4A7D6', secondary: '#D4A5A5' },
-    { primary: '#87CEEB', secondary: '#DDA0DD' },
-    { primary: '#bab58cff', secondary: '#98FB98' }
-  ];
-  
-  const colorIndex = (teamName?.length || 0 + index) % colorPairs.length;
-  return colorPairs[colorIndex];
-};
+const homeColors ='#998f7aff'; 
+const awayColors ='#546abaff';
 
-const ScoreWheel = ({ value, onValueChange, teamColor }: { value: number, onValueChange: (val: number) => void, teamColor: string }) => {
-  const scrollViewRef = useRef<ScrollView>(null);
-  const itemHeight = 60;
-  const scores = Array.from({ length: 10 }, (_, i) => i);
-
-  const handleScroll = (event: any) => {
-    const y = event.nativeEvent.contentOffset.y;
-    const selectedIndex = Math.round(y / itemHeight);
-    if (selectedIndex !== value && selectedIndex >= 0 && selectedIndex < 10) {
-      onValueChange(selectedIndex);
-    }
-  };
-
-  const scrollToValue = (val: number) => {
-    scrollViewRef.current?.scrollTo({ y: val * itemHeight, animated: true });
-  };
-
-  useEffect(() => {
-    scrollToValue(value);
-  }, []);
-
-   
-
-  return (
-    <View style={[styles.scoreWheelContainer, { borderColor: teamColor }]}>
-      <View style={[styles.scoreWheelIndicator, { backgroundColor: teamColor }]} />
-      <ScrollView
-        ref={scrollViewRef}
-        style={styles.scoreWheel}
-        contentContainerStyle={{
-          paddingTop: itemHeight * 2,
-          paddingBottom: itemHeight * 2,
-        }}
-        showsVerticalScrollIndicator={false}
-        snapToInterval={itemHeight}
-        decelerationRate="fast"
-        onMomentumScrollEnd={handleScroll}
-      >
-        {scores.map((score) => (
-          <TouchableOpacity
-            key={score}
-            style={[
-              styles.scoreItem,
-              { height: itemHeight },
-              value === score && { backgroundColor: `${teamColor}20` }
-            ]}
-            onPress={() => {
-              onValueChange(score);
-              scrollToValue(score);
-            }}
-          >
-            <ThemedText style={[
-              styles.scoreText,
-              value === score && { color: teamColor, fontWeight: '700' }
-            ]}>
-              {score}
-            </ThemedText>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-    </View>
-  );
-};
-
-// League and season data
-const leagues = [
-  { id: 'epl', name: 'Premier League', seasons: generateEPLSeasons() },
-  { id: 'laliga', name: 'La Liga', seasons: ['2023-24', '2022-23', '2021-22', '2020-21'] },
-  { id: 'ucl', name: 'Champions League', seasons: ['2023-24', '2022-23', '2021-22', '2020-21'] }
+const eplSeasons = [
+  '10-11', '11-12', '12-13', '13-14', '14-15',
+  '15-16', '16-17', '17-18', '18-19', '19-20',
+  '20-21', '21-22', '22-23', '23-24', '24-25'
 ];
 
-function generateEPLSeasons() {
-  const seasons = [];
-  for (let year = 1999; year <= 2024; year++) {
-    const nextYear = year + 1;
-    seasons.push(`${year.toString().slice(-2)}-${nextYear.toString().slice(-2)}`);
-  }
-  return seasons.reverse(); // Most recent first
-}
+const uclSeasons = [...eplSeasons]; // Same range for now
+
+const leagues = [
+  { id: 'epl', name: 'Premier League ', seasons: eplSeasons, emoji:'🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
+  { id: 'ucl', name: 'Champions League', seasons: uclSeasons, emoji:'⚽️' }
+  // La Liga and others can be added later...
+];
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -128,18 +49,17 @@ export default function HomeScreen() {
   const [selectedLeague, setSelectedLeague] = useState(leagues[0]);
   const [selectedSeason, setSelectedSeason] = useState('21-22');
 
+
   const fetchRandomMatch = async () => {
     setLoading(true);
     setError(null);
     setGamePhase('playing');
     setHomeScore(0);
     setAwayScore(0);
-    setResult(null);
 
     try {
       const data = await retroScoreApi.getRandomMatch(2);
       setMatchData(data);
-      console.log("matchData=> ", data);
     } catch (err: any) {
       setError(err.message);
       console.log("Error", err);
@@ -156,12 +76,10 @@ export default function HomeScreen() {
         predictedHomeScore: homeScore,
         predictedAwayScore: awayScore
       }
-      console.log("payload is =>", guessData);
       
       const response = await retroScoreApi.submitGuess(2, guessData);
       setResult(response);
       setGamePhase('result');
-      console.log("response is =>", response);
     } catch (err: any) {
       Alert.alert('Error', err.message);
       console.log("Error", err);
@@ -174,9 +92,9 @@ export default function HomeScreen() {
     fetchRandomMatch();
   }, []);
 
+  //used to debug if logos are loading
   useEffect(() => {
     if (matchData) {
-      console.log('🎯 Match Data received:', matchData);
       debugLogoLoading(matchData);
     }
   }, [matchData]);
@@ -194,7 +112,7 @@ export default function HomeScreen() {
 
   if (gamePhase === 'result' && result) {
     return (
-      <SafeAreaView style={[styles.container, result.correct ? styles.correctBg : styles.incorrectBg]}>
+      <SafeAreaView style={[styles.container, result.isCorrectResult ? styles.correctBg : styles.incorrectBg]}>
         <StatusBar barStyle="light-content" />
         
         {/* Result Header */}
@@ -246,7 +164,7 @@ export default function HomeScreen() {
         {/* Points */}
         <View style={styles.pointsContainer}>
           <ThemedText style={styles.pointsText}>
-            +{result.userGamePoints} Points 🏆
+            +{ result.userGamePoints} Points 🏆
           </ThemedText>
         </View>
 
@@ -258,8 +176,7 @@ export default function HomeScreen() {
     );
   }
 
-  const homeColors = generateTeamColors(matchData?.homeTeam?.name, 0);
-  const awayColors = generateTeamColors(matchData?.awayTeam?.name, 1);
+
 
   const LeagueFilterModal = () => (
     <Modal
@@ -280,7 +197,7 @@ export default function HomeScreen() {
           <ScrollView style={styles.modalScroll}>
             {leagues.map((league) => (
               <View key={league.id} style={styles.leagueSection}>
-                <ThemedText style={styles.leagueSectionTitle}>{league.name}</ThemedText>
+                <ThemedText style={styles.leagueSectionTitle}>{league.emoji} {league.name}</ThemedText>
                 <View style={styles.seasonsContainer}>
                   {league.seasons.map((season) => (
                     <TouchableOpacity
@@ -318,13 +235,13 @@ export default function HomeScreen() {
       
       {/* Header */}
       <View style={styles.header}>
-        <ThemedText style={styles.appTitle}>Predict the Score</ThemedText>
+        <ThemedText style={styles.appTitle}>Remember the Score</ThemedText>
         <TouchableOpacity 
           style={styles.leagueContainer}
           onPress={() => setShowLeagueFilter(true)}
         >
           <ThemedText style={styles.league}>
-            {selectedLeague.name} • {selectedSeason}
+           {selectedLeague.emoji} {selectedLeague.name} • {selectedSeason}
           </ThemedText>
           <ThemedText style={styles.dropdownIcon}>⌄</ThemedText>
         </TouchableOpacity>
@@ -338,7 +255,7 @@ export default function HomeScreen() {
       <View style={styles.teamContainer}>
         <View style={[
           styles.teamLogo, 
-          !matchData.homeTeam?.logoUrl && { backgroundColor: homeColors.primary }
+          !matchData.homeTeam?.logoUrl && { backgroundColor: homeColors }
           ]}>
           {matchData.homeTeam?.logoUrl ? (
             <Image
@@ -350,8 +267,7 @@ export default function HomeScreen() {
               onError={(error) => {
               console.log('❌ Home logo failed to load:', error.nativeEvent.error);
               console.log('🔍 Attempted URL:', getFullLogoUrl(matchData.homeTeam.logoUrl));
-              // onError={(error) => {
-              //   console.log('Home team logo failed to load:', error.nativeEvent.error);
+             
               }}
             />
           ) : (
@@ -368,13 +284,28 @@ export default function HomeScreen() {
       {/* VS */}
       <View style={styles.vsContainer}>
         <ThemedText style={styles.vsText}>VS</ThemedText>
+          {/* Match Info  */}
+          <View style={styles.matchInfoContainer}>
+            <View style={styles.matchInfoItem}>
+              <ThemedText style={styles.infoTextSmall}>
+                {format(new Date(matchData.matchDate), 'dd MMM yyyy')}
+              </ThemedText>
+            </View>
+            <View style={styles.matchInfoSeparator} />
+            <View style={styles.matchInfoItem}>
+              <ThemedText style={styles.infoTextSmall} numberOfLines={1}>
+                {matchData.stadiumName}
+              </ThemedText>
+            </View>
+          </View>
+
       </View>
 
       {/* Away Team */}
       <View style={styles.teamContainer}>
         <View style={[
            styles.teamLogo, 
-           !matchData.homeTeam?.logoUrl && { backgroundColor: homeColors.primary }
+           !matchData.homeTeam?.logoUrl && { backgroundColor: homeColors }
            ]}>
           {matchData.awayTeam?.logoUrl ? (
             <Image
@@ -392,27 +323,12 @@ export default function HomeScreen() {
           )}
         </View>
         <ThemedText style={styles.teamName} numberOfLines={2}>
-          {matchData.awayTeam?.name || 'Away Team'}
+          {matchData.awayTeam?.name  || 'Away Team'}
         </ThemedText>
       </View>
     </View>
 
-          {/* Match Info - Moved below teams */}
-          <View style={styles.matchInfoContainer}>
-            <View style={styles.matchInfoItem}>
-              <ThemedText style={styles.infoIcon}>📅</ThemedText>
-              <ThemedText style={styles.infoTextSmall}>
-                {format(new Date(matchData.matchDate), 'dd MMM yyyy')}
-              </ThemedText>
-            </View>
-            <View style={styles.matchInfoSeparator} />
-            <View style={styles.matchInfoItem}>
-              <ThemedText style={styles.infoIcon}>🏟️</ThemedText>
-              <ThemedText style={styles.infoTextSmall} numberOfLines={1}>
-                {matchData.stadiumName}
-              </ThemedText>
-            </View>
-          </View>
+        
 
           {/* Score Selection */}
           <View style={styles.scoreSelectionContainer}>
@@ -422,7 +338,7 @@ export default function HomeScreen() {
               <ScoreWheel 
                 value={homeScore} 
                 onValueChange={setHomeScore}
-                teamColor={homeColors.primary}
+                teamColor={homeColors}
               />
               
               <View style={styles.dashContainer}>
@@ -432,7 +348,7 @@ export default function HomeScreen() {
               <ScoreWheel 
                 value={awayScore} 
                 onValueChange={setAwayScore}
-                teamColor={awayColors.primary}
+                teamColor={awayColors}
               />
             </View>
           </View>
@@ -504,7 +420,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 16,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'baseline',
   },
   league: {
     fontSize: 13,
@@ -513,7 +429,7 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   dropdownIcon: {
-    fontSize: 12,
+    fontSize: 24,
     color: '#8E8E93',
   },
   matchInfoCard: {
@@ -533,30 +449,26 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
-  infoIcon: {
-    fontSize: 16,
-    marginRight: 8,
-  },
   infoText: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 10,
     fontWeight: '500',
     textAlign: 'center',
   },
   matchInfoContainer: {
-    flexDirection: 'row',
+    marginTop:10,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
-    marginBottom: 20,
+    marginBottom: 10,
   },
   matchInfoItem: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   matchInfoSeparator: {
-    width: 1,
-    height: 12,
+    width: 11,
+    height: 2,
     backgroundColor: '#3A3A3C',
     marginHorizontal: 16,
   },
@@ -577,13 +489,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   teamLogo: {
-    width: 120,
-    height: 120,
-    borderRadius: 60, // Make it perfectly circular (width/2)
+    width: 80,
+    height: 80,
+    borderRadius: 40, // Make it perfectly circular (width/2)
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
-    // shadowColor: '#000',
+    shadowColor: '#101010ff',
     shadowOffset: {
       width: 0,
       height: 4,
@@ -594,14 +506,13 @@ const styles = StyleSheet.create({
     overflow: 'hidden', // Ensures content stays within circle
   },
   logoImage: {
-    width: 100,  // Slightly smaller than container
-    height: 100, // Make it square for consistent aspect ratio
-    // Remove borderRadius - the parent container handles the circular crop
+    width: 80,  
+    height: 80,     
   },
   teamLogoText: {
     fontSize: 24, // Slightly larger for better visibility
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#ffffff',
     textAlign: 'center',
   },
   teamName: {
@@ -614,11 +525,22 @@ const styles = StyleSheet.create({
   vsContainer: {
     alignItems: 'center',
     marginHorizontal: 16,
+    marginTop:20,
   },
   vsText: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '700',
+    color: '#cbcbcbff',
+  },
+   dashContainer: {
+    marginHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scoreDash: {
+    fontSize: 28,
     color: '#8E8E93',
+    fontWeight: '700',
   },
   scoreSelectionContainer: {
     alignItems: 'center',
@@ -635,47 +557,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  scoreWheelContainer: {
-    width: 100,
-    height: 200,
-    backgroundColor: '#1C1C1E',
-    borderRadius: 14,
-    borderWidth: 2,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  scoreWheelIndicator: {
-    position: 'absolute',
-    top: '50%',
-    left: 0,
-    right: 0,
-    height: 48,
-    marginTop: -24,
-    opacity: 0.2,
-    zIndex: 1,
-  },
-  scoreWheel: {
-    flex: 1,
-  },
-  scoreItem: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scoreText: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#8E8E93',
-  },
-  dashContainer: {
-    marginHorizontal: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  scoreDash: {
-    fontSize: 28,
-    color: '#8E8E93',
-    fontWeight: '700',
-  },
+  
   actionContainer: {
     paddingHorizontal: 24,
     paddingBottom: 20,
@@ -798,6 +680,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
     marginBottom: 8,
+    marginTop:8,
     textAlign: 'center',
   },
   resultSubtitle: {
