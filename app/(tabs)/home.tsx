@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#151718',
-    paddingTop:60
+    // paddingTop:60
 
   },
   correctBg: {
@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   teamName: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     color: '#FFFFFF',
     textAlign: 'center',
