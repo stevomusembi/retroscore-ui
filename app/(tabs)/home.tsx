@@ -15,6 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScoreWheel } from '../components/ScrollWheel';
 import { ThemedText } from '../components/ThemedText';
+import { useAuth } from '../contexts/authContext';
 import retroScoreApi from '../services/api';
 import { debugLogoLoading, getFullLogoUrl } from '../utils/logoUtils';
 
@@ -49,8 +50,19 @@ export default function HomeScreen() {
   const [selectedLeague, setSelectedLeague] = useState(leagues[0]);
   const [selectedSeason, setSelectedSeason] = useState('21-22');
 
+  const { isAuthenticated, user } = useAuth(); 
 
   const fetchRandomMatch = async () => {
+    let  userId:string;
+    //conditional check if user is guest or logged in 
+     if (isAuthenticated && user) {
+      // Logged in user - use their actual ID
+       userId = user.id;
+    } else {
+      // Guest user - use special guest handling
+       userId = '1'
+    }
+
     setLoading(true);
     setError(null);
     setGamePhase('playing');
@@ -58,7 +70,7 @@ export default function HomeScreen() {
     setAwayScore(0);
 
     try {
-      const data = await retroScoreApi.getRandomMatch(2);
+      const data = await retroScoreApi.getRandomMatch(userId);
       setMatchData(data);
     } catch (err: any) {
       setError(err.message);
@@ -176,7 +188,21 @@ export default function HomeScreen() {
     );
   }
 
-
+const formatMatchDate = (dateString:string) => {
+  if (!dateString) return 'Date TBD';
+  
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) {
+    return 'Invalid Date';
+  }
+  
+  try {
+    return format(date, 'dd MMM yyyy');
+  } catch (error) {
+    console.log('Date formatting error:', error);
+    return 'Date Error';
+  }
+};
 
   const LeagueFilterModal = () => (
     <Modal
@@ -288,7 +314,7 @@ export default function HomeScreen() {
           <View style={styles.matchInfoContainer}>
             <View style={styles.matchInfoItem}>
               <ThemedText style={styles.infoTextSmall}>
-                {format(new Date(matchData.matchDate), 'dd MMM yyyy')}
+               {formatMatchDate(matchData.matchDate)}
               </ThemedText>
             </View>
             <View style={styles.matchInfoSeparator} />

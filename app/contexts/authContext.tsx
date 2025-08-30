@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 
@@ -6,6 +7,7 @@ export interface User {
   email: string;
   name: string;
   picture?: string;
+  isGuest:boolean;
 }
 
 export interface AuthResponse {
@@ -21,6 +23,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (googleToken: string) => Promise<boolean>;
   logout: () => Promise<void>;
+  loginAsGuest:()=>Promise<boolean>;
   showLoginModal: () => void;
 }
 
@@ -98,6 +101,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+   const loginAsGuest = async (): Promise<boolean> => {
+    try {
+      // Generate a unique guest ID(can refine this later)
+      const guestId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const guestUser: User = {
+        id: guestId,
+        isGuest: true,
+        email: '',
+        name: ''
+      };
+
+      setUser(guestUser);
+      await AsyncStorage.setItem('user', JSON.stringify(guestUser));
+      
+      // Optionally, register this guest with your backend for tracking
+      // await fetch('YOUR_BACKEND_URL/auth/guest', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ guestId }),
+      // });
+
+      return true;
+    } catch (error) {
+      console.error('Guest login error:', error);
+      return false;
+    }
+  };
+
   const logout = async () => {
     try {
       setIsLoading(true);
@@ -124,6 +156,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated: !!user,
     login,
     logout,
+    loginAsGuest,
     showLoginModal,
   };
 

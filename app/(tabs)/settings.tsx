@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   Alert,
@@ -12,6 +13,7 @@ import {
 } from 'react-native';
 import { ThemedText } from '../components/ThemedText';
 import { ThemedView } from '../components/ThemedView';
+import { useAuth } from '../contexts/authContext';
 import retroScoreApi from '../services/api';
 
 interface League {
@@ -52,6 +54,8 @@ export default function SettingsScreen() {
   const [leagueModalVisible, setLeagueModalVisible] = useState(false);
   const [difficultyModalVisible, setDifficultyModalVisible] = useState(false);
   const [aboutModalVisible, setAboutModalVisible] = useState(false);
+
+  const {logout} = useAuth();
 
   const getUserSettings = async () => {
     setLoading(true);
@@ -139,6 +143,11 @@ export default function SettingsScreen() {
     return DIFFICULTIES.find(diff => diff.id === settingsData.gameDifficulty);
   };
 
+  const  handleLogout = async ()=> {
+     await logout();
+    router.replace('/(auth)/login');
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ThemedView style={styles.content}>
@@ -208,6 +217,22 @@ export default function SettingsScreen() {
                   getSelectedDifficulty() && { color: getSelectedDifficulty()?.color }
                 ]}>
                   {getSelectedDifficulty()?.name || "Medium"}
+                </ThemedText>
+              </View>
+              <Text style={styles.chevronIcon}>›</Text>
+            </View>
+          </TouchableOpacity>
+
+             {/*Logout */}
+          <TouchableOpacity 
+            style={styles.settingItem} 
+            onPress={() => handleLogout()}
+            disabled={loading}
+          >
+            <View style={styles.settingContent}>
+              <View style={styles.settingTextContainer}>
+                <ThemedText style={styles.settingText}>Logout</ThemedText>
+                <ThemedText style={styles.currentValueDisplay}>logout
                 </ThemedText>
               </View>
               <Text style={styles.chevronIcon}>›</Text>

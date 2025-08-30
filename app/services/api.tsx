@@ -49,7 +49,7 @@ apiClient.interceptors.response.use(
 
 export const retroScoreApi = {
   // Get random match
-  getRandomMatch: async (userId: number = 2 ) => {
+  getRandomMatch: async (userId: string = '2' ) => {
     try {
       const response = await apiClient.get(`/game/random-match?userId=${userId}`);
       return response.data;

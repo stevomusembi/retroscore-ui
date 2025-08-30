@@ -1,4 +1,5 @@
 // app/auth/login.tsx
+import { makeRedirectUri } from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
@@ -20,14 +21,24 @@ const { width, height } = Dimensions.get('window');
 
 export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, loginAsGuest } = useAuth();
 
+
+const redirectUri = makeRedirectUri();
   // Replace with your actual Google client ID
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: 'YOUR_ANDROID_CLIENT_ID', // Replace with your actual client ID
-    iosClientId: 'YOUR_IOS_CLIENT_ID', // Replace if you have a separate iOS client ID
-    webClientId: 'YOUR_WEB_CLIENT_ID', // Replace if you have a web client ID
-  });
+ const [request, response, promptAsync] = Google.useAuthRequest({
+  clientId: process.env.EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID,
+  redirectUri
+  // androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+  // iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+  // webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+ });
+
+
+  console.log("here is ==> uri",request?.redirectUri);
+  console.log("Client ID:", process.env.EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID);
+console.log("Request details:", request);
+
 
   React.useEffect(() => {
     if (response?.type === 'success') {
@@ -45,7 +56,7 @@ export default function LoginScreen() {
     try {
       const success = await login(accessToken);
       if (success) {
-        router.replace('/(tabs)/home'); // Navigate to main app (adjust path as needed)
+        router.replace('/(tabs)/home'); 
       } else {
         Alert.alert('Login Failed', 'Unable to authenticate with our servers');
       }
@@ -66,8 +77,21 @@ export default function LoginScreen() {
     }
   };
 
-  const handleGuestContinue = () => {
-    router.replace('/(tabs)/home'); // Navigate to main app as guest
+  const handleGuestContinue = async () => {
+    setIsLoading(true);
+    try {
+      const success = await loginAsGuest();
+      if (success) {
+        router.replace('/(tabs)/home');
+      } else {
+        Alert.alert('Error', 'Failed to continue as guest');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'An unexpected error occurred');
+      console.error('Guest login error:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -190,9 +214,8 @@ const styles = StyleSheet.create({
   googleIcon: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#ffffff',
     backgroundColor: '#ffffff',
-    // color: '#4285f4',
+    color: '#4285f4',
     width: 24,
     height: 24,
     textAlign: 'center',
