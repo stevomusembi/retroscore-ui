@@ -3,7 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 
 export interface User {
-  id: string;
+  id: number;
   email: string;
   name: string;
   picture?: string;
@@ -64,11 +64,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+
+
   const login = async (googleToken: string): Promise<boolean> => {
+    console.log("We got to the login api method to backend")
     try {
       setIsLoading(true);
+      console.log("endpoin is => ", process.env.EXPO_PUBLIC_API_BASE_URL);
 
-      const response = await fetch('http://localhost:8080/auth/google/mobile', {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL}/auth/google/mobile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -104,7 +108,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    const loginAsGuest = async (): Promise<boolean> => {
     try {
       // Generate a unique guest ID(can refine this later)
-      const guestId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      // const guestId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const guestId = 1;
       
       const guestUser: User = {
         id: guestId,
@@ -129,6 +134,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return false;
     }
   };
+
 
   const logout = async () => {
     try {
@@ -162,6 +168,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
+ export  const debugToken = async () => {
+    try {
+      const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
+      const userData = await SecureStore.getItemAsync(USER_DATA_KEY);
+      
+      console.log("=== DEBUG TOKEN INFO ===");
+      console.log("Token:", token);
+      console.log("User Data:", userData);
+      console.log("=== END DEBUG ===");
+      
+      // You can also copy to clipboard if needed
+      // await Clipboard.setStringAsync(token);
+      
+    } catch (error) {
+      console.log("Error retrieving token:", error);
+    }
+  };
+
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);

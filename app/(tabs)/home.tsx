@@ -15,9 +15,10 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScoreWheel } from '../components/ScrollWheel';
 import { ThemedText } from '../components/ThemedText';
-import { useAuth } from '../contexts/authContext';
+import { debugToken, useAuth } from '../contexts/authContext';
 import retroScoreApi from '../services/api';
 import { debugLogoLoading, getFullLogoUrl } from '../utils/logoUtils';
+
 
 
 const homeColors ='#998f7aff'; 
@@ -53,14 +54,16 @@ export default function HomeScreen() {
   const { isAuthenticated, user } = useAuth(); 
 
   const fetchRandomMatch = async () => {
-    let  userId:string;
+    let  userId:number;
     //conditional check if user is guest or logged in 
      if (isAuthenticated && user) {
       // Logged in user - use their actual ID
+      console.log("user is => ",user);
        userId = user.id;
+       debugToken();
     } else {
       // Guest user - use special guest handling
-       userId = '1'
+       userId = 1;
     }
 
     setLoading(true);
@@ -70,8 +73,8 @@ export default function HomeScreen() {
     setAwayScore(0);
 
     try {
-      const data = await retroScoreApi.getRandomMatch(userId);
-      setMatchData(data);
+      // const data = await retroScoreApi.getRandomMatch(userId);
+      // setMatchData(data);
     } catch (err: any) {
       setError(err.message);
       console.log("Error", err);
@@ -79,6 +82,7 @@ export default function HomeScreen() {
       setLoading(false);
     }
   };
+
 
   const submitGuess = async () => {
     try {

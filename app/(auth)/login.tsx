@@ -1,21 +1,19 @@
 // app/auth/login.tsx
-import { makeRedirectUri } from 'expo-auth-session';
-import * as Google from 'expo-auth-session/providers/google';
+import { GoogleSignin, GoogleSigninButton, statusCodes } from '@react-native-google-signin/google-signin';
 import { router } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   Dimensions,
+  Image,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import { useAuth } from '../contexts/authContext';
-
-WebBrowser.maybeCompleteAuthSession();
 
 const { width, height } = Dimensions.get('window');
 
@@ -23,57 +21,136 @@ export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const { login, loginAsGuest } = useAuth();
 
+  useEffect(() => {
+    // Configure Google Sign-In
+    GoogleSignin.configure({
+      webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID, // From Google Cloud Console
+      // androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+      offlineAccess: true,
+      hostedDomain: '', // Optional
+      forceCodeForRefreshToken: true,
+    });
 
-const redirectUri = makeRedirectUri();
-  // Replace with your actual Google client ID
- const [request, response, promptAsync] = Google.useAuthRequest({
-  clientId: process.env.EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID,
-  redirectUri
-  // androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-  // iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-  // webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
- });
+  console.log("GoogleSignin configured with webClientId:", process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID);
+  console.log("=== END CONFIG DEBUG ===");
+  }, []);
 
-
-  console.log("here is ==> uri",request?.redirectUri);
-  console.log("Client ID:", process.env.EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID);
-console.log("Request details:", request);
-
-
-  React.useEffect(() => {
-    if (response?.type === 'success') {
-      handleGoogleResponse(response.authentication?.accessToken);
-    }
-  }, [response]);
-
-  const handleGoogleResponse = async (accessToken: string | undefined) => {
-    if (!accessToken) {
-      Alert.alert('Authentication Error', 'Failed to get Google access token');
+ const handleWebGoogleLogin = () => {
+  setIsLoading(true);
+  
+  // Open popup with popup parameter
+  const popup = window.open(
+    "http://localhost:8080/oauth2/authorization/google?popup=true",
+    "login",
+    'width=500,height=600,scrollbars=yes,resizable=yes'
+  );
+  
+  // Listen for messages from popup
+  const messageListener = async (event: MessageEvent) => {
+    // Verify origin for security will change in production
+    if (event.origin !== 'http://localhost:8080') {
       return;
     }
+    
+    if (event.data.type === 'GOOGLE_LOGIN_SUCCESS') {
+      try {
+        const { accessToken, email, username, id } = event.data.data;
+        sessionStorage.setItem("token", accessToken);
+        const user = { id:id,
+                     name: username,
+                     email:email
+                   };
+        sessionStorage.setItem("user", JSON.stringify(user));
 
+        router.replace('/(tabs)/home');
+       
+      } catch (error) {
+        console.error('Error processing login:', error);
+        Alert.alert('Error', 'Failed to process login');
+      } finally {
+        setIsLoading(false);
+        window.removeEventListener('message', messageListener);
+        if (popup && !popup.closed) {
+          popup.close();
+        }
+      }
+    } else if (event.data.type === 'GOOGLE_LOGIN_ERROR') {
+      const errorMessage = event.data.message || 'Login failed';
+      const errorCode = event.data.code || 'unknown_error';
+      
+      console.error('Login error:', { code: errorCode, message: errorMessage });
+      Alert.alert('Login Error', errorMessage);
+      
+      setIsLoading(false);
+      window.removeEventListener('message', messageListener);
+      if (popup && !popup.closed) {
+        popup.close();
+      }
+    }
+  }
+  
+  // Add message listener
+  window.addEventListener('message', messageListener);
+  
+  // Handle popup closed manually (user cancelled)
+  const checkClosed = setInterval(() => {
+    if (popup && popup.closed) {
+      clearInterval(checkClosed);
+      setIsLoading(false);
+      window.removeEventListener('message', messageListener);
+    }
+  }, 1000);
+  
+  // Cleanup after 5 minutes (timeout)
+  setTimeout(() => {
+    clearInterval(checkClosed);
+    window.removeEventListener('message', messageListener);
+    if (popup && !popup.closed) {
+      popup.close();
+    }
+    if (isLoading) {
+      setIsLoading(false);
+      Alert.alert('Timeout', 'Login process timed out');
+    }
+  }, 300000); // 5 minutes
+};
+
+  const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      const success = await login(accessToken);
+      // Check if your device supports Google Play
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      
+      // Get user info
+      const userInfo = await GoogleSignin.signIn();
+      
+      console.log('User info:', userInfo);
+      
+      // Get access token if needed
+      const tokens = await GoogleSignin.getTokens();
+      console.log('Access token:', tokens.accessToken);
+      
+      // Use your existing login function with the access token
+      const success = await login(tokens.accessToken);
       if (success) {
         router.replace('/(tabs)/home'); 
       } else {
         Alert.alert('Login Failed', 'Unable to authenticate with our servers');
       }
-    } catch (error) {
-      Alert.alert('Error', 'An unexpected error occurred');
-      console.error('Login error:', error);
+    } catch (error: any) {
+      console.error('Google Sign-In Error:', error);
+      
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        Alert.alert('Sign-In Cancelled', 'Google sign-in was cancelled');
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        Alert.alert('Sign-In in Progress', 'Google sign-in is already in progress');
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        Alert.alert('Play Services Error', 'Google Play Services not available');
+      } else {
+        Alert.alert('Sign-In Error', error.message || 'An unknown error occurred');
+      }
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    try {
-      await promptAsync();
-    } catch (error) {
-      Alert.alert('Error', 'Failed to initiate Google login');
-      console.error('Google login error:', error);
     }
   };
 
@@ -113,21 +190,33 @@ console.log("Request details:", request);
 
         {/* Login Options */}
         <View style={styles.loginSection}>
-          {/* Google Login Button */}
-          <TouchableOpacity
-            style={[styles.loginButton, styles.googleButton]}
+          {/* Google Login Button - Using the library's button for native app and custom button for web */}
+        {Platform.OS !== 'web' ? (
+          <GoogleSigninButton
+            style={styles.googleSigninButton}
+            size={GoogleSigninButton.Size.Wide}
+            color={GoogleSigninButton.Color.Dark}
             onPress={handleGoogleLogin}
-            disabled={!request || isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator color="#ffffff" size="small" />
-            ) : (
-              <>
-                <Text style={styles.googleIcon}>G</Text>
-                <Text style={styles.loginButtonText}>Continue with Google</Text>
-              </>
-            )}
-          </TouchableOpacity>
+            disabled={isLoading}
+          />) :(
+        <TouchableOpacity
+          style={[styles.loginButton, styles.googleButton]}
+          onPress={handleWebGoogleLogin}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="#ffffff" size="small" />
+          ) : (
+            <>
+              <Image
+                source={require('../../assets/images/google-logo.png')}
+                style={styles.googleLogo}
+                resizeMode="contain"
+              />
+              <Text style={styles.loginButtonText}>Continue with Google</Text>
+            </>
+          )}
+        </TouchableOpacity>)}
 
           {/* Guest Option */}
           <TouchableOpacity
@@ -198,6 +287,10 @@ const styles = StyleSheet.create({
   loginSection: {
     gap: 16,
   },
+  googleSigninButton: {
+    width: '100%',
+    height: 56,
+  },
   loginButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -211,16 +304,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#4285f4',
     gap: 12,
   },
-  googleIcon: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    backgroundColor: '#ffffff',
-    color: '#4285f4',
-    width: 24,
-    height: 24,
-    textAlign: 'center',
-    lineHeight: 24,
-    borderRadius: 12,
+  googleLogo: {
+  width: 24,
+  height: 24,
+  borderRadius: 12,
+  backgroundColor: '#ffffff',
   },
   loginButtonText: {
     fontSize: 16,

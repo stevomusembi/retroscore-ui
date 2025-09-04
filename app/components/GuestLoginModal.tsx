@@ -1,11 +1,11 @@
 import { router } from 'expo-router';
 import React from 'react';
 import {
-    Modal,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 interface GuestLoginModalProps {
@@ -23,7 +23,7 @@ export const GuestLoginModal: React.FC<GuestLoginModalProps> = ({
 }) => {
   const handleLoginPress = () => {
     onClose();
-    router.push('/(auth)/login'as any);
+    router.push('/(auth)/login');
   };
 
   return (

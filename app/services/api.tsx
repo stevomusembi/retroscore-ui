@@ -1,5 +1,6 @@
-// services/retroScoreApi.js
 import axios from 'axios';
+import * as SecureStore from 'expo-secure-store';
+import { useEffect } from 'react';
 
 // For Android emulator, use 10.0.2.2
 // For iOS simulator, use localhost
@@ -13,13 +14,29 @@ const getBaseUrl = () => {
 
 };
 
+// Get stored token
+let token;
+useEffect(() => {
+  const fetchToken = async () => {
+    try {
+       token = await SecureStore.getItemAsync('jwt_token');
+      // Do something with token
+    } catch (error) {
+      console.error('Error fetching token:', error);
+    }
+  };
+  fetchToken();
+}, []);
+
 const API_BASE_URL = getBaseUrl();
 
+// need a condition to check if is guest or logged in to decide if we are using beare token in headers
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000, // 10 seconds timeout
   headers: {
-    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
   },
 });
 
@@ -49,7 +66,7 @@ apiClient.interceptors.response.use(
 
 export const retroScoreApi = {
   // Get random match
-  getRandomMatch: async (userId: string = '2' ) => {
+  getRandomMatch: async (userId: number) => {
     try {
       const response = await apiClient.get(`/game/random-match?userId=${userId}`);
       return response.data;
