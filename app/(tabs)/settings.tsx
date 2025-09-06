@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   Alert,
@@ -12,6 +13,7 @@ import {
 } from 'react-native';
 import { ThemedText } from '../components/ThemedText';
 import { ThemedView } from '../components/ThemedView';
+import { useAuth } from '../contexts/authContext';
 import retroScoreApi from '../services/api';
 
 interface League {
@@ -53,12 +55,14 @@ export default function SettingsScreen() {
   const [difficultyModalVisible, setDifficultyModalVisible] = useState(false);
   const [aboutModalVisible, setAboutModalVisible] = useState(false);
 
+  const {logout} = useAuth();
+
   const getUserSettings = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      const data: UserSettings = await retroScoreApi.getUserSettings(2);
+      const data: UserSettings = await retroScoreApi.getUserSettings();
       setSettingsData(data);
       console.log("settings data => ", data);
     } catch (err: any) {
@@ -72,7 +76,7 @@ export default function SettingsScreen() {
    const updateLeaguePreference = async (leagueId:string) => {
     try {
       setLoading(true);
-      await retroScoreApi.updatLeaguePreferrence(1, leagueId);
+      await retroScoreApi.updatLeaguePreferrence(leagueId);
       setSettingsData({ ...settingsData, preferredLeague: leagueId  });
       setLeagueModalVisible(false); // Auto-close modal
       Alert.alert('Success', `Preferred league updated!`);
@@ -88,7 +92,7 @@ export default function SettingsScreen() {
   const updateDifficulty = async (difficulty: string) => {
     try {
       setLoading(true);
-      await retroScoreApi.updateGameDifficulty(1, difficulty);
+      await retroScoreApi.updateGameDifficulty(difficulty);
       setSettingsData({ ...settingsData, gameDifficulty: difficulty });
       setDifficultyModalVisible(false); // Auto-close modal
     } catch (err: any) {
@@ -102,7 +106,7 @@ export default function SettingsScreen() {
   const updateNotifications = async (enabled: boolean) => {
     try {
       setLoading(true);
-      await retroScoreApi.updateNotification(1, enabled);
+      await retroScoreApi.updateNotification(enabled);
       setSettingsData({ ...settingsData, notificationsEnabled: enabled });
       Alert.alert('Success', `Notifications ${enabled ? 'enabled' : 'disabled'}!`);
     } catch (err: any) {
@@ -116,7 +120,7 @@ export default function SettingsScreen() {
    const updateHint = async (enabled: boolean) => {
     try {
       setLoading(true);
-      await retroScoreApi.updateHint(1, enabled);
+      await retroScoreApi.updateHint(enabled);
       setSettingsData({ ...settingsData, hintEnabled: enabled });
       Alert.alert('Success', `Hint ${enabled ? 'enabled' : 'disabled'}!`);
     } catch (err: any) {
@@ -138,6 +142,11 @@ export default function SettingsScreen() {
   const getSelectedDifficulty = () => {
     return DIFFICULTIES.find(diff => diff.id === settingsData.gameDifficulty);
   };
+
+  const  handleLogout = async ()=> {
+     await logout();
+    router.replace('/(auth)/login');
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -208,6 +217,22 @@ export default function SettingsScreen() {
                   getSelectedDifficulty() && { color: getSelectedDifficulty()?.color }
                 ]}>
                   {getSelectedDifficulty()?.name || "Medium"}
+                </ThemedText>
+              </View>
+              <Text style={styles.chevronIcon}>›</Text>
+            </View>
+          </TouchableOpacity>
+
+             {/*Logout */}
+          <TouchableOpacity 
+            style={styles.settingItem} 
+            onPress={() => handleLogout()}
+            disabled={loading}
+          >
+            <View style={styles.settingContent}>
+              <View style={styles.settingTextContainer}>
+                <ThemedText style={styles.settingText}>Logout</ThemedText>
+                <ThemedText style={styles.currentValueDisplay}>logout
                 </ThemedText>
               </View>
               <Text style={styles.chevronIcon}>›</Text>

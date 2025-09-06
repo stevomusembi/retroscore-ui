@@ -19,11 +19,9 @@ export const getFullLogoUrl = (logoUrl:any) => {
 
 // Add this debug helper
 export const debugLogoLoading = (matchData:any) => {
-  console.log('🏠 Home team:', matchData.homeTeam?.name);
   console.log('🏠 Home logo URL:', matchData.homeTeam?.logoUrl);
   console.log('🏠 Full home URL:', getFullLogoUrl(matchData.homeTeam?.logoUrl));
   
-  console.log('✈️ Away team:', matchData.awayTeam?.name);
   console.log('✈️ Away logo URL:', matchData.awayTeam?.logoUrl);
   console.log('✈️ Full away URL:', getFullLogoUrl(matchData.awayTeam?.logoUrl));
 }

@@ -30,7 +30,7 @@ export default function LeaderboardScreen() {
     try {
       const [leaderboard, userStats] = await Promise.all([
         retroScoreApi.getLeaderBoard(0, 20),
-        retroScoreApi.getUserStats(2) // Replace with actual user ID
+        retroScoreApi.getUserStats() 
       ]);
       
       setLeaderboardData(leaderboard);

@@ -5,6 +5,7 @@ import {
   Alert,
   Image,
   Modal,
+  Platform,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -15,8 +16,10 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScoreWheel } from '../components/ScrollWheel';
 import { ThemedText } from '../components/ThemedText';
+import { debugToken, useAuth } from '../contexts/authContext';
 import retroScoreApi from '../services/api';
 import { debugLogoLoading, getFullLogoUrl } from '../utils/logoUtils';
+
 
 
 const homeColors ='#998f7aff'; 
@@ -49,8 +52,40 @@ export default function HomeScreen() {
   const [selectedLeague, setSelectedLeague] = useState(leagues[0]);
   const [selectedSeason, setSelectedSeason] = useState('21-22');
 
+  const { isAuthenticated, user } = useAuth(); 
 
   const fetchRandomMatch = async () => {
+
+    let  userId:number|undefined;
+
+    if (Platform.OS == 'web'){
+      console.log("we are on web");
+      let storedUser = sessionStorage.getItem("user");
+      if(storedUser){
+        try{
+          const user = JSON.parse(storedUser);
+          userId = user.id;
+        } catch(error) {
+          console.error("failed to parse user from session storage", error);
+        }
+      }
+      // app android
+      } else { 
+      //conditional check if user is guest or logged in 
+      if ((isAuthenticated && user) ) {
+        // Logged in user - use their actual ID
+        console.log("user is => ",user);
+        userId = user.id;
+        debugToken();
+      } else {
+        // Guest user - use special guest handling
+        userId = 1;
+      }
+    }
+  
+    if (userId === undefined) {
+  console.error("User ID is undefined—cannot fetch match");
+  return;}
     setLoading(true);
     setError(null);
     setGamePhase('playing');
@@ -58,7 +93,7 @@ export default function HomeScreen() {
     setAwayScore(0);
 
     try {
-      const data = await retroScoreApi.getRandomMatch(2);
+      const data = await retroScoreApi.getRandomMatch();
       setMatchData(data);
     } catch (err: any) {
       setError(err.message);
@@ -67,6 +102,7 @@ export default function HomeScreen() {
       setLoading(false);
     }
   };
+
 
   const submitGuess = async () => {
     try {
@@ -77,7 +113,7 @@ export default function HomeScreen() {
         predictedAwayScore: awayScore
       }
       
-      const response = await retroScoreApi.submitGuess(2, guessData);
+      const response = await retroScoreApi.submitGuess(guessData);
       setResult(response);
       setGamePhase('result');
     } catch (err: any) {
@@ -176,7 +212,21 @@ export default function HomeScreen() {
     );
   }
 
-
+const formatMatchDate = (dateString:string) => {
+  if (!dateString) return 'Date TBD';
+  
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) {
+    return 'Invalid Date';
+  }
+  
+  try {
+    return format(date, 'dd MMM yyyy');
+  } catch (error) {
+    console.log('Date formatting error:', error);
+    return 'Date Error';
+  }
+};
 
   const LeagueFilterModal = () => (
     <Modal
@@ -288,7 +338,7 @@ export default function HomeScreen() {
           <View style={styles.matchInfoContainer}>
             <View style={styles.matchInfoItem}>
               <ThemedText style={styles.infoTextSmall}>
-                {format(new Date(matchData.matchDate), 'dd MMM yyyy')}
+               {formatMatchDate(matchData.matchDate)}
               </ThemedText>
             </View>
             <View style={styles.matchInfoSeparator} />
@@ -383,7 +433,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#151718',
-    paddingTop:60
+    // paddingTop:60
 
   },
   correctBg: {
@@ -516,7 +566,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   teamName: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     color: '#FFFFFF',
     textAlign: 'center',
