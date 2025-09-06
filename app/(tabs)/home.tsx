@@ -5,6 +5,7 @@ import {
   Alert,
   Image,
   Modal,
+  Platform,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -54,18 +55,37 @@ export default function HomeScreen() {
   const { isAuthenticated, user } = useAuth(); 
 
   const fetchRandomMatch = async () => {
-    let  userId:number;
-    //conditional check if user is guest or logged in 
-     if (isAuthenticated && user) {
-      // Logged in user - use their actual ID
-      console.log("user is => ",user);
-       userId = user.id;
-       debugToken();
-    } else {
-      // Guest user - use special guest handling
-       userId = 1;
-    }
 
+    let  userId:number|undefined;
+
+    if (Platform.OS == 'web'){
+      console.log("we are on web");
+      let storedUser = sessionStorage.getItem("user");
+      if(storedUser){
+        try{
+          const user = JSON.parse(storedUser);
+          userId = user.id;
+        } catch(error) {
+          console.error("failed to parse user from session storage", error);
+        }
+      }
+      // app android
+      } else { 
+      //conditional check if user is guest or logged in 
+      if ((isAuthenticated && user) ) {
+        // Logged in user - use their actual ID
+        console.log("user is => ",user);
+        userId = user.id;
+        debugToken();
+      } else {
+        // Guest user - use special guest handling
+        userId = 1;
+      }
+    }
+  
+    if (userId === undefined) {
+  console.error("User ID is undefined—cannot fetch match");
+  return;}
     setLoading(true);
     setError(null);
     setGamePhase('playing');
@@ -73,8 +93,8 @@ export default function HomeScreen() {
     setAwayScore(0);
 
     try {
-      // const data = await retroScoreApi.getRandomMatch(userId);
-      // setMatchData(data);
+      const data = await retroScoreApi.getRandomMatch();
+      setMatchData(data);
     } catch (err: any) {
       setError(err.message);
       console.log("Error", err);
@@ -93,7 +113,7 @@ export default function HomeScreen() {
         predictedAwayScore: awayScore
       }
       
-      const response = await retroScoreApi.submitGuess(2, guessData);
+      const response = await retroScoreApi.submitGuess(guessData);
       setResult(response);
       setGamePhase('result');
     } catch (err: any) {

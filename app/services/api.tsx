@@ -1,6 +1,6 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
-import { useEffect } from 'react';
+import { Platform } from 'react-native';
 
 // For Android emulator, use 10.0.2.2
 // For iOS simulator, use localhost
@@ -13,36 +13,45 @@ const getBaseUrl = () => {
   return 'http://192.168.1.251:8080/api'; // Physical device (replace XXX with your IP)
 
 };
-
-// Get stored token
-let token;
-useEffect(() => {
-  const fetchToken = async () => {
-    try {
-       token = await SecureStore.getItemAsync('jwt_token');
-      // Do something with token
-    } catch (error) {
-      console.error('Error fetching token:', error);
+// Function to get token based on platform
+const getToken = async () => {
+  try {
+    if (Platform.OS !== 'web') {
+      // Mobile platforms
+      return await SecureStore.getItemAsync('jwt_token');
+    } else {
+      // Web platform
+      return sessionStorage.getItem('token');
     }
-  };
-  fetchToken();
-}, []);
+  } catch (error) {
+    console.error('Error fetching token:', error);
+    return null;
+  }
+};
 
 const API_BASE_URL = getBaseUrl();
 
-// need a condition to check if is guest or logged in to decide if we are using beare token in headers
+// Create axios instance without initial headers
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000, // 10 seconds timeout
   headers: {
-    'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json'
   },
 });
 
-//  request interceptor for logging (optional)
+// Request interceptor to add token dynamically
 apiClient.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    // Get token dynamically for each request
+    const token = await getToken();
+    
+    // Only add Authorization header if token exists (authenticated user)
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    // If no token, request will be sent without Authorization header (guest user)
+    
     console.log('API Request:', config.method?.toUpperCase(), config.url);
     return config;
   },
@@ -51,6 +60,7 @@ apiClient.interceptors.request.use(
     return Promise.reject(error);
   }
 );
+
 
 //  response interceptor for error handling
 apiClient.interceptors.response.use(
@@ -66,79 +76,70 @@ apiClient.interceptors.response.use(
 
 export const retroScoreApi = {
   // Get random match
-  getRandomMatch: async (userId: number) => {
+  getRandomMatch: async () => {
     try {
-      const response = await apiClient.get(`/game/random-match?userId=${userId}`);
+      const response = await apiClient.get(`/game/random-match`);
       return response.data;
     } catch (error:any) {
       throw new Error(`Failed to fetch random match: ${error.message}`);
     }
   },
 
-  submitGuess: async (userId:any, gameData: any) => {
+  submitGuess: async ( gameData: any) => {
     try {
-      const response = await apiClient.post(`/game/guess?userId=${userId}`, gameData);
+      const response = await apiClient.post(`/game/guess`, gameData);
       return response.data;
     } catch (error:any) {
       throw new Error(`Failed to submit guess: ${error.message}`);
     }
   },
 
-  // getUserStats: async (userId:any) => {
-  //   try {
-  //     const response = await apiClient.get(`/user/stats?userId=${userId}`);
-  //     return response.data;
-  //   } catch (error:any) {
-  //     throw new Error(`Failed to get stats: ${error.message}`);
-  //   }
-  // },
-
-   getUserSettings: async (userId:any) => {
+   getUserSettings: async () => {
     try {
-      const response = await apiClient.get(`/settings/${userId}`);
+      const response = await apiClient.get(`/settings`);
       return response.data;
     } catch (error:any) {
       throw new Error(`Failed to get settings: ${error.message}`);
     }
   },
-  updateUserSettings:async (userId:any, settings:any)=>{
+  updateUserSettings:async (settings:any)=>{
     try{
-      const response = await apiClient.post(`settings/${userId}`, settings);
+      const response = await apiClient.post(`settings`, settings);
       return response.data;
     }catch(error:any){
       throw new Error(`Failed to update settings: ${error.message}`);
     }
   },
-    updatLeaguePreferrence:async (userId:any, leagueId:string)=>{
+    updatLeaguePreferrence:async (leagueId:string)=>{
     try{
-      const response = await apiClient.patch(`settings/${userId}/preferredLeague?leagueId=${leagueId}`);
+      const response = await apiClient.patch(`settings/preferredLeague?leagueId=${leagueId}`);
       return response.data;
         
     } catch(err:any){
       throw new Error(`Failed to update preferd league, :${err.message}`);
     }
   },
-  updateGameDifficulty:async (userId:any, difficulty:string)=>{
+  updateGameDifficulty:async ( difficulty:string)=>{
     try{
-      const response = await apiClient.patch(`settings/${userId}/difficulty?difficulty=${difficulty}`);
+      const response = await apiClient.patch(`settings/difficulty?difficulty=${difficulty}`);
       return response.data;
         
     } catch(err:any){
       throw new Error(`Failed to update game difficulty, :${err.message}`);
     }
   },
-   updateNotification:async (userId:any,enabled:boolean)=>{
+   updateNotification:async (enabled:boolean)=>{
     try{
-      const response = await apiClient.patch(`settings/${userId}/notifications?enabled=${enabled}`);
+      const response = await apiClient.patch(`settings/notifications?enabled=${enabled}`);
       return response.data;
         
     } catch(err:any){
       throw new Error(`Failed to update game notifications, :${err.message}`);
     }
   },
-  updateHint:async (userId:any,enabled:boolean)=>{
+  updateHint:async (enabled:boolean)=>{
     try{
-      const response = await apiClient.patch(`settings/${userId}/hint?enabled=${enabled}`);
+      const response = await apiClient.patch(`settings/hint?enabled=${enabled}`);
       return response.data;
         
     } catch(err:any){
@@ -147,15 +148,15 @@ export const retroScoreApi = {
   },
     getLeaderBoard: async (page:number = 0,size:number =20) => {
     try {
-      const response = await apiClient.get(`/leaderboard?page=${page}&size=${size}`);
+      const response = await apiClient.get(`/leaderboard/public?page=${page}&size=${size}`);
       return response.data;
     } catch (error:any) {
       throw new Error(`Failed to get leader board: ${error.message}`);
     }
   },
-  getUserStats: async (userId:number) => {
+  getUserStats: async () => {
     try {
-      const response = await apiClient.get(`leaderboard/user/${userId}`);
+      const response = await apiClient.get(`leaderboard/personal`);
       return response.data;
     } catch (error:any) {
       throw new Error(`Failed to get user rank: ${error.message}`);

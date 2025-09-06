@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 
 export interface User {
   id: number;
@@ -21,6 +22,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  setIsAuthenticated:(value: boolean) => void;
   login: (googleToken: string) => Promise<boolean>;
   logout: () => Promise<void>;
   loginAsGuest:()=>Promise<boolean>;
@@ -39,6 +41,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     checkStoredAuth();
@@ -114,13 +117,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const guestUser: User = {
         id: guestId,
         isGuest: true,
-        email: '',
-        name: ''
+        email: 'guestuser',
+        name: 'guestuser'
       };
 
       setUser(guestUser);
+      setIsAuthenticated(false);
+
       await AsyncStorage.setItem('user', JSON.stringify(guestUser));
-      
+      sessionStorage.setItem("user", JSON.stringify(guestUser));
       // Optionally, register this guest with your backend for tracking
       // await fetch('YOUR_BACKEND_URL/auth/guest', {
       //   method: 'POST',
@@ -139,11 +144,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     try {
       setIsLoading(true);
-      await Promise.all([
-        SecureStore.deleteItemAsync(AUTH_TOKEN_KEY),
-        SecureStore.deleteItemAsync(USER_DATA_KEY)
-      ]);
-      setUser(null);
+      if(Platform.OS == 'web'){
+        sessionStorage.clear();
+      } else {
+
+        await Promise.all([
+          SecureStore.deleteItemAsync(AUTH_TOKEN_KEY),
+          SecureStore.deleteItemAsync(USER_DATA_KEY),
+        ]);
+        setUser(null);
+      }
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
@@ -159,7 +169,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value: AuthContextType = {
     user,
     isLoading,
-    isAuthenticated: !!user,
+    isAuthenticated:!!user,
+    setIsAuthenticated,
     login,
     logout,
     loginAsGuest,

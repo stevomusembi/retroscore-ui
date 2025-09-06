@@ -62,7 +62,7 @@ export default function SettingsScreen() {
     setError(null);
     
     try {
-      const data: UserSettings = await retroScoreApi.getUserSettings(2);
+      const data: UserSettings = await retroScoreApi.getUserSettings();
       setSettingsData(data);
       console.log("settings data => ", data);
     } catch (err: any) {
@@ -76,7 +76,7 @@ export default function SettingsScreen() {
    const updateLeaguePreference = async (leagueId:string) => {
     try {
       setLoading(true);
-      await retroScoreApi.updatLeaguePreferrence(1, leagueId);
+      await retroScoreApi.updatLeaguePreferrence(leagueId);
       setSettingsData({ ...settingsData, preferredLeague: leagueId  });
       setLeagueModalVisible(false); // Auto-close modal
       Alert.alert('Success', `Preferred league updated!`);
@@ -92,7 +92,7 @@ export default function SettingsScreen() {
   const updateDifficulty = async (difficulty: string) => {
     try {
       setLoading(true);
-      await retroScoreApi.updateGameDifficulty(1, difficulty);
+      await retroScoreApi.updateGameDifficulty(difficulty);
       setSettingsData({ ...settingsData, gameDifficulty: difficulty });
       setDifficultyModalVisible(false); // Auto-close modal
     } catch (err: any) {
@@ -106,7 +106,7 @@ export default function SettingsScreen() {
   const updateNotifications = async (enabled: boolean) => {
     try {
       setLoading(true);
-      await retroScoreApi.updateNotification(1, enabled);
+      await retroScoreApi.updateNotification(enabled);
       setSettingsData({ ...settingsData, notificationsEnabled: enabled });
       Alert.alert('Success', `Notifications ${enabled ? 'enabled' : 'disabled'}!`);
     } catch (err: any) {
@@ -120,7 +120,7 @@ export default function SettingsScreen() {
    const updateHint = async (enabled: boolean) => {
     try {
       setLoading(true);
-      await retroScoreApi.updateHint(1, enabled);
+      await retroScoreApi.updateHint(enabled);
       setSettingsData({ ...settingsData, hintEnabled: enabled });
       Alert.alert('Success', `Hint ${enabled ? 'enabled' : 'disabled'}!`);
     } catch (err: any) {

@@ -19,7 +19,7 @@ const { width, height } = Dimensions.get('window');
 
 export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
-  const { login, loginAsGuest } = useAuth();
+  const { login, loginAsGuest,setIsAuthenticated } = useAuth();
 
   useEffect(() => {
     // Configure Google Sign-In
@@ -61,6 +61,7 @@ export default function LoginScreen() {
                      email:email
                    };
         sessionStorage.setItem("user", JSON.stringify(user));
+        setIsAuthenticated(true);
 
         router.replace('/(tabs)/home');
        
@@ -219,13 +220,13 @@ export default function LoginScreen() {
         </TouchableOpacity>)}
 
           {/* Guest Option */}
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={[styles.loginButton, styles.guestButton]}
             onPress={handleGuestContinue}
             disabled={isLoading}
           >
             <Text style={styles.guestButtonText}>Continue without login</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         {/* Footer Text */}
