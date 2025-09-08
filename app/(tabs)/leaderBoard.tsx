@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { FlatList, Image, RefreshControl, SafeAreaView, StyleSheet, View } from 'react-native';
+import { Dimensions, FlatList, Image, RefreshControl, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '../components/ThemedText';
 import { ThemedView } from '../components/ThemedView';
 import retroScoreApi from '../services/api';
@@ -20,11 +21,13 @@ const getInitials = (username: string) => {
 };
 
 export default function LeaderboardScreen() {
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [leaderboardData, setLeaderboardData] = useState<any>(null);
   const [userRank, setUserRank] = useState<any>(null);
-
+  const { width, height } = Dimensions.get('window');
+  
   const getLeaderboardData = async () => {
     setLoading(true);
     try {
@@ -160,7 +163,11 @@ export default function LeaderboardScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container,{paddingTop: insets.top}]}>
+      <ScrollView 
+                      style={styles.scrollContainer}
+                      contentContainerStyle={[styles.scrollContent,{height:height*1.2}]}
+                      showsVerticalScrollIndicator={false}>
       <ThemedView style={styles.content}>
         {/* Header */}
         <View style={styles.header}>
@@ -193,6 +200,7 @@ export default function LeaderboardScreen() {
           />
         </View>
       </ThemedView>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -201,6 +209,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000000',
+  },
+    scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
+   
   },
   content: {
     flex: 1,
