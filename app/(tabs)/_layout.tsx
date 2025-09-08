@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  console.log("what is insets ==>",insets);
   
   return (
     <Tabs
@@ -14,9 +15,9 @@ export default function TabLayout() {
           backgroundColor: '#2c2c2e',
           borderTopColor: '#3a3a3c',
           borderTopWidth: 1,
-          paddingBottom: Math.max(insets.bottom, 40), // Dynamic padding based on device
+          paddingBottom: Math.max(insets.bottom, 40)+10, // Dynamic padding based on device
           paddingTop: 8,
-          height: 50 + Math.max(insets.bottom, 20), // Dynamic height
+          height: 50 + Math.max(insets.bottom, 20)+10, // Dynamic height
           position: 'absolute',
           bottom: 0,
         },

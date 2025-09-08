@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Dimensions,
   Image,
   Modal,
   Platform,
@@ -24,6 +25,8 @@ import { debugLogoLoading, getFullLogoUrl } from '../utils/logoUtils';
 
 const homeColors ='#998f7aff'; 
 const awayColors ='#546abaff';
+
+const { width, height } = Dimensions.get('window');
 
 const eplSeasons = [
   '10-11', '11-12', '12-13', '13-14', '14-15',
@@ -53,6 +56,9 @@ export default function HomeScreen() {
   const [selectedSeason, setSelectedSeason] = useState('21-22');
 
   const { isAuthenticated, user } = useAuth(); 
+
+  console.log("height and width is =>", height, width);
+  console.log("insets in this page ==> ", insets);
 
   const fetchRandomMatch = async () => {
 
@@ -149,6 +155,10 @@ export default function HomeScreen() {
   if (gamePhase === 'result' && result) {
     return (
       <SafeAreaView style={[styles.container, result.isCorrectResult ? styles.correctBg : styles.incorrectBg]}>
+         <ScrollView 
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}>
         <StatusBar barStyle="light-content" />
         
         {/* Result Header */}
@@ -208,9 +218,11 @@ export default function HomeScreen() {
         <TouchableOpacity style={styles.nextButton} onPress={fetchRandomMatch}>
           <ThemedText style={styles.nextButtonText}>Next Match</ThemedText>
         </TouchableOpacity>
+        </ScrollView>
       </SafeAreaView>
     );
   }
+  
 
 const formatMatchDate = (dateString:string) => {
   if (!dateString) return 'Date TBD';
@@ -227,6 +239,7 @@ const formatMatchDate = (dateString:string) => {
     return 'Date Error';
   }
 };
+
 
   const LeagueFilterModal = () => (
     <Modal
@@ -280,9 +293,13 @@ const formatMatchDate = (dateString:string) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container,{paddingTop: insets.top + 15}]}>
+        
       <StatusBar barStyle="light-content" />
-      
+      <ScrollView 
+                style={styles.scrollContainer}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.header}>
         <ThemedText style={styles.appTitle}>Remember the Score</ThemedText>
@@ -425,6 +442,7 @@ const formatMatchDate = (dateString:string) => {
       )}
 
       <LeagueFilterModal />
+    </ScrollView>
     </SafeAreaView>
   );
 }
@@ -433,8 +451,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#151718',
-    // paddingTop:60
+    // paddingTop:insets.top,
 
+  },
+    scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20, // Increase bottom padding
+    minHeight: height * 1.2,
   },
   correctBg: {
     backgroundColor: '#1B5E20',
@@ -642,6 +668,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#3A3A3C',
+    marginBottom:20,
   },
   newMatchButtonText: {
     color: '#FFFFFF',

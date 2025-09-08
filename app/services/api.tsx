@@ -18,7 +18,7 @@ const getToken = async () => {
   try {
     if (Platform.OS !== 'web') {
       // Mobile platforms
-      return await SecureStore.getItemAsync('jwt_token');
+      return await SecureStore.getItemAsync('auth_token');
     } else {
       // Web platform
       return sessionStorage.getItem('token');
@@ -50,6 +50,7 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    console.log("we have auth token", token);
     // If no token, request will be sent without Authorization header (guest user)
     
     console.log('API Request:', config.method?.toUpperCase(), config.url);
