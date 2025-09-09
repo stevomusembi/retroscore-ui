@@ -3,9 +3,9 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Dimensions,
   Image,
   Modal,
-  Platform,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -14,16 +14,18 @@ import {
   View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import CountdownTimer from '../components/CountDownTimer';
 import { ScoreWheel } from '../components/ScrollWheel';
 import { ThemedText } from '../components/ThemedText';
-import { debugToken, useAuth } from '../contexts/authContext';
 import retroScoreApi from '../services/api';
-import { debugLogoLoading, getFullLogoUrl } from '../utils/logoUtils';
+import { getFullLogoUrl } from '../utils/logoUtils';
 
 
 
 const homeColors ='#998f7aff'; 
 const awayColors ='#546abaff';
+
+const { width, height } = Dimensions.get('window');
 
 const eplSeasons = [
   '10-11', '11-12', '12-13', '13-14', '14-15',
@@ -51,41 +53,9 @@ export default function HomeScreen() {
   const [showLeagueFilter, setShowLeagueFilter] = useState(false);
   const [selectedLeague, setSelectedLeague] = useState(leagues[0]);
   const [selectedSeason, setSelectedSeason] = useState('21-22');
-
-  const { isAuthenticated, user } = useAuth(); 
+  const [timeLimit, setTimeLimit] = useState<any>();
 
   const fetchRandomMatch = async () => {
-
-    let  userId:number|undefined;
-
-    if (Platform.OS == 'web'){
-      console.log("we are on web");
-      let storedUser = sessionStorage.getItem("user");
-      if(storedUser){
-        try{
-          const user = JSON.parse(storedUser);
-          userId = user.id;
-        } catch(error) {
-          console.error("failed to parse user from session storage", error);
-        }
-      }
-      // app android
-      } else { 
-      //conditional check if user is guest or logged in 
-      if ((isAuthenticated && user) ) {
-        // Logged in user - use their actual ID
-        console.log("user is => ",user);
-        userId = user.id;
-        debugToken();
-      } else {
-        // Guest user - use special guest handling
-        userId = 1;
-      }
-    }
-  
-    if (userId === undefined) {
-  console.error("User ID is undefined—cannot fetch match");
-  return;}
     setLoading(true);
     setError(null);
     setGamePhase('playing');
@@ -125,13 +95,24 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
+   const storedUser = sessionStorage.getItem("user");
+    if(storedUser){
+      try{
+        setTimeLimit(JSON.parse(storedUser).timeLimit);
+
+      } catch(error){
+        console.error("Failed to parse user form session storage",error);
+      }
+    }
+
     fetchRandomMatch();
+
   }, []);
 
   //used to debug if logos are loading
   useEffect(() => {
     if (matchData) {
-      debugLogoLoading(matchData);
+      // debugLogoLoading(matchData);
     }
   }, [matchData]);
 
@@ -149,6 +130,10 @@ export default function HomeScreen() {
   if (gamePhase === 'result' && result) {
     return (
       <SafeAreaView style={[styles.container, result.isCorrectResult ? styles.correctBg : styles.incorrectBg]}>
+         <ScrollView 
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}>
         <StatusBar barStyle="light-content" />
         
         {/* Result Header */}
@@ -208,9 +193,11 @@ export default function HomeScreen() {
         <TouchableOpacity style={styles.nextButton} onPress={fetchRandomMatch}>
           <ThemedText style={styles.nextButtonText}>Next Match</ThemedText>
         </TouchableOpacity>
+        </ScrollView>
       </SafeAreaView>
     );
   }
+  
 
 const formatMatchDate = (dateString:string) => {
   if (!dateString) return 'Date TBD';
@@ -227,6 +214,7 @@ const formatMatchDate = (dateString:string) => {
     return 'Date Error';
   }
 };
+
 
   const LeagueFilterModal = () => (
     <Modal
@@ -280,9 +268,13 @@ const formatMatchDate = (dateString:string) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container,{paddingTop: insets.top + 15}]}>
+        
       <StatusBar barStyle="light-content" />
-      
+      <ScrollView 
+                style={styles.scrollContainer}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.header}>
         <ThemedText style={styles.appTitle}>Remember the Score</ThemedText>
@@ -295,6 +287,10 @@ const formatMatchDate = (dateString:string) => {
           </ThemedText>
           <ThemedText style={styles.dropdownIcon}>⌄</ThemedText>
         </TouchableOpacity>
+      </View>
+
+      <View>
+        <CountdownTimer timerDuration={timeLimit}></CountdownTimer>
       </View>
 
       {matchData && (
@@ -425,6 +421,7 @@ const formatMatchDate = (dateString:string) => {
       )}
 
       <LeagueFilterModal />
+    </ScrollView>
     </SafeAreaView>
   );
 }
@@ -433,8 +430,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#151718',
-    // paddingTop:60
 
+  },
+    scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
+    minHeight: height * 1.2,
   },
   correctBg: {
     backgroundColor: '#1B5E20',
@@ -642,6 +646,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#3A3A3C',
+    marginBottom:20,
   },
   newMatchButtonText: {
     color: '#FFFFFF',

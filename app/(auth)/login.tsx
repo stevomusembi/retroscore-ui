@@ -17,6 +17,7 @@ import { useAuth } from '../contexts/authContext';
 
 const { width, height } = Dimensions.get('window');
 
+
 export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const { login, loginAsGuest,setIsAuthenticated } = useAuth();
@@ -54,13 +55,16 @@ export default function LoginScreen() {
     
     if (event.data.type === 'GOOGLE_LOGIN_SUCCESS') {
       try {
-        const { accessToken, email, username, id } = event.data.data;
+        const { accessToken, email, username, id, time_limit } = event.data.data;
+        console.log("user data from backend is => ",event.data.data);
         sessionStorage.setItem("token", accessToken);
         const user = { id:id,
                      name: username,
-                     email:email
-                   };
+                     email:email,
+                     timeLimit:time_limit
+                     };
         sessionStorage.setItem("user", JSON.stringify(user));
+        console.log("stored user", user);
         setIsAuthenticated(true);
 
         router.replace('/(tabs)/home');
