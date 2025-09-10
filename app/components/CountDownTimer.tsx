@@ -12,38 +12,39 @@ type TimerDuration =
 
 interface CountdownTimerProps {
   timerDuration: TimerDuration;
-  onTimeUp?: () => void;
+  onTimeUp: () =>void;
   isActive?: boolean;
   style?: ViewStyle;
 }
 
 const CountdownTimer: React.FC<CountdownTimerProps> = ({ 
-  timerDuration, 
-  onTimeUp,
-  isActive = true,
-  style = {} 
-}) => {
-  const [timeLeft, setTimeLeft] = useState<number>(0);
-  const intervalRef: any = useRef<NodeJS.Timeout | null>(null);
+    timerDuration, 
+    onTimeUp,
+    isActive = true,
+    style = {} 
+    }) => {
 
-  // Circle properties
-  const size = 100;
-  const strokeWidth = 6;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = radius * 2 * Math.PI;
+    const [timeLeft, setTimeLeft] = useState<number>(0);
+    const intervalRef: any = useRef<NodeJS.Timeout | null>(null);
 
-  // Convert enum string to seconds
-  const getSecondsFromDuration = (duration: TimerDuration): number => {
-    const durationMap: Record<TimerDuration, number> = {
-      'TEN_SECONDS': 10,
-      'FIFTEEN_SECONDS': 15,
-      'TWENTY_SECONDS': 20,
-      'TWENTY_FIVE_SECONDS': 25,
-      'THIRTY_SECONDS': 30,
-      'FORTY_FIVE_SECONDS': 45,
+    // Circle properties
+    const size = 100;
+    const strokeWidth = 6;
+    const radius = (size - strokeWidth) / 2;
+    const circumference = radius * 2 * Math.PI;
+
+    // Convert enum string to seconds
+    const getSecondsFromDuration = (duration: TimerDuration): number => {
+        const durationMap: Record<TimerDuration, number> = {
+        'TEN_SECONDS': 10,
+        'FIFTEEN_SECONDS': 15,
+        'TWENTY_SECONDS': 20,
+        'TWENTY_FIVE_SECONDS': 25,
+        'THIRTY_SECONDS': 30,
+        'FORTY_FIVE_SECONDS': 45,
+        };
+        return durationMap[duration] || 30;
     };
-    return durationMap[duration] || 30;
-  };
 
   // Initialize timer when timerDuration changes
   useEffect(() => {
@@ -51,8 +52,12 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({
       const seconds = getSecondsFromDuration(timerDuration);
       setTimeLeft(seconds);
     }
+  
   }, [timerDuration]);
 
+    onTimeUp = ():void =>{
+        console.log("cannot submit time is up");
+    }
   // Handle countdown logic
   useEffect(() => {
     if (isActive && timeLeft > 0) {

@@ -54,6 +54,7 @@ export default function HomeScreen() {
   const [selectedLeague, setSelectedLeague] = useState(leagues[0]);
   const [selectedSeason, setSelectedSeason] = useState('21-22');
   const [timeLimit, setTimeLimit] = useState<any>();
+  const [timeIsUp, setTimeIsUp] = useState<boolean>(false);
 
   const fetchRandomMatch = async () => {
     setLoading(true);
@@ -88,7 +89,7 @@ export default function HomeScreen() {
       setGamePhase('result');
     } catch (err: any) {
       Alert.alert('Error', err.message);
-      console.log("Error", err);
+      console.error("Error", err);
     } finally {
       setLoading(false);
     }
@@ -210,7 +211,7 @@ const formatMatchDate = (dateString:string) => {
   try {
     return format(date, 'dd MMM yyyy');
   } catch (error) {
-    console.log('Date formatting error:', error);
+    console.error('Date formatting error:', error);
     return 'Date Error';
   }
 };
@@ -290,7 +291,7 @@ const formatMatchDate = (dateString:string) => {
       </View>
 
       <View>
-        <CountdownTimer timerDuration={timeLimit}></CountdownTimer>
+        <CountdownTimer timerDuration={timeLimit} onTimeUp={()=> {setTimeIsUp(true) ,console.log(timeIsUp)}}></CountdownTimer>
       </View>
 
       {matchData && (
@@ -308,11 +309,11 @@ const formatMatchDate = (dateString:string) => {
               source={{ uri: getFullLogoUrl(matchData.homeTeam.logoUrl) }}
               style={styles.logoImage}
               resizeMode="contain" // This ensures consistent sizing!
-              onLoadStart={() => console.log('🟡 Home logo loading started')}
-              onLoad={() => console.log('✅ Home logo loaded successfully')}
+              // onLoadStart={() => console.log('🟡 Home logo loading started')}
+              // onLoad={() => console.log('✅ Home logo loaded successfully')}
               onError={(error) => {
-              console.log('❌ Home logo failed to load:', error.nativeEvent.error);
-              console.log('🔍 Attempted URL:', getFullLogoUrl(matchData.homeTeam.logoUrl));
+              // console.log('❌ Home logo failed to load:', error.nativeEvent.error);
+              // console.log('🔍 Attempted URL:', getFullLogoUrl(matchData.homeTeam.logoUrl));
              
               }}
             />
@@ -404,7 +405,7 @@ const formatMatchDate = (dateString:string) => {
             <TouchableOpacity 
               style={[styles.submitButton, loading && styles.submitButtonDisabled]} 
               onPress={submitGuess}
-              disabled={loading}
+              disabled={loading || timeIsUp}
             >
               {loading ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
