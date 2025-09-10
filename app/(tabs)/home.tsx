@@ -434,22 +434,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#151718',
-<<<<<<< HEAD
-=======
-    // paddingTop:insets.top,
->>>>>>> 1ed495c16f1ed7fecc19478270ca861cb5c3c4c6
-
   },
     scrollContainer: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
-<<<<<<< HEAD
     paddingBottom: 20,
-=======
-    paddingBottom: 20, // Increase bottom padding
->>>>>>> 1ed495c16f1ed7fecc19478270ca861cb5c3c4c6
     minHeight: height * 1.2,
   },
   correctBg: {
