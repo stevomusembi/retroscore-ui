@@ -56,6 +56,9 @@ export default function HomeScreen() {
   const [timeLimit, setTimeLimit] = useState<any>();
   const [timeIsUp, setTimeIsUp] = useState<boolean>(false);
 
+  console.log("height and width is =>", height, width);
+  console.log("insets in this page ==> ", insets);
+
   const fetchRandomMatch = async () => {
     setLoading(true);
     setError(null);
@@ -431,6 +434,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#151718',
+<<<<<<< HEAD
+=======
+    // paddingTop:insets.top,
+>>>>>>> 1ed495c16f1ed7fecc19478270ca861cb5c3c4c6
 
   },
     scrollContainer: {
@@ -438,7 +445,11 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+<<<<<<< HEAD
     paddingBottom: 20,
+=======
+    paddingBottom: 20, // Increase bottom padding
+>>>>>>> 1ed495c16f1ed7fecc19478270ca861cb5c3c4c6
     minHeight: height * 1.2,
   },
   correctBg: {

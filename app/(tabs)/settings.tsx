@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   Alert,
+  Dimensions,
   Modal,
   SafeAreaView,
   ScrollView,
@@ -11,6 +12,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '../components/ThemedText';
 import { ThemedView } from '../components/ThemedView';
 import { useAuth } from '../contexts/authContext';
@@ -46,6 +48,7 @@ const DIFFICULTIES = [
 ];
 
 export default function SettingsScreen() {
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [settingsData, setSettingsData] = useState<UserSettings>({});
@@ -130,6 +133,7 @@ export default function SettingsScreen() {
       setLoading(false);
     }
   };
+  const { width, height } = Dimensions.get('window');
 
   useEffect(() => {
     getUserSettings();
@@ -149,7 +153,11 @@ export default function SettingsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container,{paddingTop:insets.top,height:'auto'}]}>
+        <ScrollView 
+          style={styles.scrollContainer}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}>
       <ThemedView style={styles.content}>
         <ThemedText style={styles.title}>Settings</ThemedText>
         
@@ -241,7 +249,7 @@ export default function SettingsScreen() {
 
           {/* About */}
           <TouchableOpacity 
-            style={styles.settingItem} 
+            style={[styles.settingItem,{marginBottom:50}]} 
             onPress={() => setAboutModalVisible(true)}
           >
             <View style={styles.settingContent}>
@@ -373,6 +381,7 @@ export default function SettingsScreen() {
           </View>
         </View>
       </Modal>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -381,11 +390,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1a1a1a',
+ 
+  },
+   scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
   },
   content: {
-    flex: 1,
     padding: 20,
-    paddingTop:60
+    
   },
   title: {
     fontSize: 32,
