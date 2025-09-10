@@ -1,10 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
+import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
-  const insets = useSafeAreaInsets();
-  console.log("what is insets ==>",insets);
+
+const insets = useSafeAreaInsets();
+const bottomPadding = Platform.OS === 'web' ? 10 : Math.max(insets.bottom, 20) + 10;
+const tabBarHeight = Platform.OS === 'web' ? 70 : 50 + Math.max(insets.bottom, 20) + 10;
+
+// Then use bottomPadding and tabBarHeight in your tabBarStyle
   
   return (
     <Tabs
@@ -15,9 +20,9 @@ export default function TabLayout() {
           backgroundColor: '#2c2c2e',
           borderTopColor: '#3a3a3c',
           borderTopWidth: 1,
-          paddingBottom: Math.max(insets.bottom, 40)+10, // Dynamic padding based on device
+          paddingBottom: bottomPadding, // Dynamic padding based on device
           paddingTop: 8,
-          height: 50 + Math.max(insets.bottom, 20)+10, // Dynamic height
+          height: tabBarHeight,// Dynamic height
           position: 'absolute',
           bottom: 0,
         },

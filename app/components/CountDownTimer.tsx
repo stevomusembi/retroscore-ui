@@ -28,7 +28,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({
     const intervalRef: any = useRef<NodeJS.Timeout | null>(null);
 
     // Circle properties
-    const size = 100;
+    const size = 70;
     const strokeWidth = 6;
     const radius = (size - strokeWidth) / 2;
     const circumference = radius * 2 * Math.PI;
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
+    padding: 10,
   },
   timerWrapper: {
     position: 'relative',
@@ -174,11 +174,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '100%',
-    height: '100%',
+    width: '75%',
+    height: '75%',
   },
   timerText: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
     fontFamily: 'monospace',
   },
