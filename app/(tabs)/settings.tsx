@@ -28,6 +28,7 @@ interface League {
 interface UserSettings {
   preferredLeague?: string;
   gameDifficulty?: string;
+  gameTimeLimit?:string;
   notificationsEnabled?: boolean;
   hintEnabled?:boolean;
 }
@@ -47,6 +48,15 @@ const DIFFICULTIES = [
   { id: 'EXPERT', name: 'Expert', description: 'Ultimate challenge', color: '#9C27B0' },
 ];
 
+const TIMELIMIT = [
+  { id:  'TEN_SECONDS', name: '10 seconds', description: 'Ultimate challenge ', color: '#4CAF50' },
+  { id: 'TWENTY_SECONDS', name: '20 seconds', description: 'For experienced players', color: '#FF9800' },
+  { id: 'TWENTY_FIVE_SECONDS', name: '25 seconds', description: 'Balanced challenge', color: '#F44336' },
+  { id: 'THIRTY_SECONDS', name: '30 seconds', description: 'Perfect for beginners', color: '#9C27B0' },
+   { id: 'FORTY_FIVE_SECONDS', name: '45 seconds', description: 'All the time', color: '#9C27B0' }
+];
+
+
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
@@ -57,6 +67,7 @@ export default function SettingsScreen() {
   const [leagueModalVisible, setLeagueModalVisible] = useState(false);
   const [difficultyModalVisible, setDifficultyModalVisible] = useState(false);
   const [aboutModalVisible, setAboutModalVisible] = useState(false);
+  const [timelimitModalVisible, setTimeLimitModalVisible] = useState(false);
 
   const {logout} = useAuth();
 
@@ -106,6 +117,20 @@ export default function SettingsScreen() {
     }
   };
 
+   const updateTimeLimit = async (limit: string) => {
+    try {
+      setLoading(true);
+      // await retroScoreApi.updateGameTimeLimit(limit);
+      setSettingsData({ ...settingsData, gameTimeLimit: limit });
+      setTimeLimitModalVisible(false); // Auto-close modal
+    } catch (err: any) {
+      Alert.alert('Error', 'Failed to update time limit');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const updateNotifications = async (enabled: boolean) => {
     try {
       setLoading(true);
@@ -145,6 +170,10 @@ export default function SettingsScreen() {
 
   const getSelectedDifficulty = () => {
     return DIFFICULTIES.find(diff => diff.id === settingsData.gameDifficulty);
+  };
+
+    const getSelectedTimeLimit = () => {
+    return TIMELIMIT.find(limit => limit.id === settingsData.gameTimeLimit);
   };
 
   const  handleLogout = async ()=> {
@@ -225,6 +254,26 @@ export default function SettingsScreen() {
                   getSelectedDifficulty() && { color: getSelectedDifficulty()?.color }
                 ]}>
                   {getSelectedDifficulty()?.name || "Medium"}
+                </ThemedText>
+              </View>
+              <Text style={styles.chevronIcon}>›</Text>
+            </View>
+          </TouchableOpacity>
+
+             {/* Game Time Limit */}
+          <TouchableOpacity 
+            style={styles.settingItem} 
+            onPress={() => setTimeLimitModalVisible(true)}
+            disabled={loading}
+          >
+            <View style={styles.settingContent}>
+              <View style={styles.settingTextContainer}>
+                <ThemedText style={styles.settingText}>⏳ Game Time Limit</ThemedText>
+                <ThemedText style={[
+                  styles.currentValueDisplay,
+                  getSelectedTimeLimit() && { color: getSelectedTimeLimit()?.color }
+                ]}>
+                  {getSelectedTimeLimit()?.name || "Thirty Seconds"}
                 </ThemedText>
               </View>
               <Text style={styles.chevronIcon}>›</Text>
@@ -341,6 +390,43 @@ export default function SettingsScreen() {
         </View>
       </Modal>
 
+    {/* time limit Selection Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={timelimitModalVisible}
+        onRequestClose={() => setTimeLimitModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <ThemedText style={styles.modalTitle}>Select time limit</ThemedText>
+            <ScrollView style={styles.optionsList}>
+              {TIMELIMIT.map((limit) => (
+                <TouchableOpacity
+                  key={limit.id}
+                  style={[
+                    styles.optionItem,
+                    settingsData.gameDifficulty === limit.id && styles.selectedOption
+                  ]}
+                  onPress={() => updateTimeLimit(limit.id)}
+                  disabled={loading}
+                >
+                  <View style={styles.optionContent}>
+                    <View style={[styles.difficultyIndicator, { backgroundColor: limit.color }]} />
+                    <View style={styles.optionTextContainer}>
+                      <ThemedText style={styles.optionTitle}>{limit.name}</ThemedText>
+                      <ThemedText style={styles.optionSubtitle}>{limit.description}</ThemedText>
+                    </View>
+                    {settingsData.gameTimeLimit === limit.id && (
+                      <Text style={styles.checkMark}>✓</Text>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
       {/* About Modal */}
       <Modal
         animationType="slide"

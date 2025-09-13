@@ -129,6 +129,15 @@ export const retroScoreApi = {
       throw new Error(`Failed to update game difficulty, :${err.message}`);
     }
   },
+  updateGameTimeLimit:async ( limit:string)=>{
+    try{
+      const response = await apiClient.patch(`settings/timeLimit?limit=${limit}`);
+      return response.data;
+        
+    } catch(err:any){
+      throw new Error(`Failed to update game time limit, :${err.message}`);
+    }
+  },
    updateNotification:async (enabled:boolean)=>{
     try{
       const response = await apiClient.patch(`settings/notifications?enabled=${enabled}`);

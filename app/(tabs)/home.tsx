@@ -145,9 +145,9 @@ export default function HomeScreen() {
           <ThemedText style={styles.resultEmoji}>
             {result.isCorrectScore && result.isCorrectResult ? '🎯' : result.isCorrectResult ? '⚡' : '🎲'}
           </ThemedText>
-          <ThemedText style={styles.resultTitle}>
+          {/* <ThemedText style={styles.resultTitle}>
             {result.isCorrectScore && result.isCorrectResult ? 'Perfect Score!' : result.isCorrectResult ? 'Close Call!' : 'Try Again!'}
-          </ThemedText>
+          </ThemedText> */}
           <ThemedText style={styles.resultSubtitle}>
             {result.resultMessage}
           </ThemedText>
@@ -461,15 +461,15 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    paddingTop: 10,
-    paddingBottom: 12,
+    paddingTop: 8,
+    paddingBottom: 8,
     paddingHorizontal: 24,
   },
   appTitle: {
     fontSize: 24,
     fontWeight: '700',
     color: '#FFFFFF',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   leagueContainer: {
     backgroundColor: '#1C1C1E',
@@ -726,11 +726,11 @@ const styles = StyleSheet.create({
   // Result Screen Styles
   resultHeader: {
     alignItems: 'center',
-    paddingVertical: 40,
+    paddingVertical: 20,
     paddingHorizontal: 24,
   },
   resultEmoji: {
-    fontSize: 64,
+    fontSize: 44,
     marginBottom: 16,
   },
   resultTitle: {

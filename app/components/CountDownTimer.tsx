@@ -28,7 +28,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({
     const intervalRef: any = useRef<NodeJS.Timeout | null>(null);
 
     // Circle properties
-    const size = 70;
+    const size = 60;
     const strokeWidth = 6;
     const radius = (size - strokeWidth) / 2;
     const circumference = radius * 2 * Math.PI;
@@ -147,9 +147,9 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({
           >
             {timeLeft}
           </Text>
-          <Text style={styles.secondsLabel}>
+          {/* <Text style={styles.secondsLabel}>
             {timeLeft === 1 ? 'sec' : 'secs'}
-          </Text>
+          </Text> */}
         </View>
       </View>
     </View>
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 10,
+    padding:5,
   },
   timerWrapper: {
     position: 'relative',
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
   },
   secondsLabel: {
-    fontSize: 8,
+    fontSize: 6,
     color: '#6C757D',
     textTransform: 'uppercase',
     letterSpacing: 0.5,

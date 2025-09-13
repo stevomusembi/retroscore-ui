@@ -56,7 +56,6 @@ export default function LoginScreen() {
     if (event.data.type === 'GOOGLE_LOGIN_SUCCESS') {
       try {
         const { accessToken, email, username, id, time_limit } = event.data.data;
-        console.log("user data from backend is => ",event.data.data);
         sessionStorage.setItem("token", accessToken);
         const user = { id:id,
                      name: username,

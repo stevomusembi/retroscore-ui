@@ -9,6 +9,7 @@ export interface User {
   name: string;
   picture?: string;
   isGuest:boolean;
+  timeLimit?:string;
 }
 
 export interface AuthResponse {
@@ -118,7 +119,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         id: guestId,
         isGuest: true,
         email: 'guestuser',
-        name: 'guestuser'
+        name: 'guestuser',
+        timeLimit:"THIRTY_SECONDS"
       };
 
       setUser(guestUser);
