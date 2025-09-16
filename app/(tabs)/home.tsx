@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
-import { useEffect, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -42,6 +43,31 @@ const leagues = [
 ];
 
 export default function HomeScreen() {
+
+// reset and remount page when users click on home tab
+useFocusEffect(
+  useCallback(() => {
+    setGamePhase('playing');
+    setResult(null);
+    setTimeIsUp(false);
+    setIsSubmitting(false);
+    setHomeScore(0);
+    setAwayScore(0);
+    setError(null);
+
+    fetchRandomMatch();
+    
+    const storedUser = sessionStorage.getItem("user");
+    if (storedUser) {
+      try {
+        setTimeLimit(JSON.parse(storedUser).timeLimit);
+      } catch (error) {
+        console.error("Failed to parse user from session storage", error);
+      }
+    }
+  }, [])
+);
+
   const insets = useSafeAreaInsets();
   const [matchData, setMatchData] = useState<any>();
   const [loading, setLoading] = useState(false);
@@ -55,16 +81,20 @@ export default function HomeScreen() {
   const [selectedSeason, setSelectedSeason] = useState('21-22');
   const [timeLimit, setTimeLimit] = useState<any>();
   const [timeIsUp, setTimeIsUp] = useState<boolean>(false);
-
-  console.log("height and width is =>", height, width);
-  console.log("insets in this page ==> ", insets);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resetTrigger, setResetTrigger] = useState<any>();
 
   const fetchRandomMatch = async () => {
+    handleReset();
     setLoading(true);
     setError(null);
     setGamePhase('playing');
     setHomeScore(0);
     setAwayScore(0);
+    setIsSubmitting(false);
+    setTimeIsUp(false);
+    
+
 
     try {
       const data = await retroScoreApi.getRandomMatch();
@@ -80,13 +110,15 @@ export default function HomeScreen() {
 
   const submitGuess = async () => {
     try {
+      if (isSubmitting) return; 
       setLoading(true);
+      setIsSubmitting(true);
       const guessData = {
         matchId: matchData.matchId,
         predictedHomeScore: homeScore,
-        predictedAwayScore: awayScore
+        predictedAwayScore: awayScore,
+        timeIsUp:timeIsUp
       }
-      
       const response = await retroScoreApi.submitGuess(guessData);
       setResult(response);
       setGamePhase('result');
@@ -94,9 +126,26 @@ export default function HomeScreen() {
       Alert.alert('Error', err.message);
       console.error("Error", err);
     } finally {
+      setIsSubmitting(false);
       setLoading(false);
     }
   };
+
+  const handeTimeIsUp = () => {
+    setTimeIsUp(true);
+  }
+
+  const handleReset = ()=> {
+  setResetTrigger(Date.now());
+  }
+
+  useEffect(() => {
+    if (timeIsUp) {
+      submitGuess();
+    }
+  }, [timeIsUp]);
+
+
 
   useEffect(() => {
    const storedUser = sessionStorage.getItem("user");
@@ -145,9 +194,6 @@ export default function HomeScreen() {
           <ThemedText style={styles.resultEmoji}>
             {result.isCorrectScore && result.isCorrectResult ? '🎯' : result.isCorrectResult ? '⚡' : '🎲'}
           </ThemedText>
-          {/* <ThemedText style={styles.resultTitle}>
-            {result.isCorrectScore && result.isCorrectResult ? 'Perfect Score!' : result.isCorrectResult ? 'Close Call!' : 'Try Again!'}
-          </ThemedText> */}
           <ThemedText style={styles.resultSubtitle}>
             {result.resultMessage}
           </ThemedText>
@@ -175,6 +221,12 @@ export default function HomeScreen() {
           </View>
 
           <ThemedText style={styles.yourGuessLabel}>Your Guess</ThemedText>
+          {timeIsUp ? (
+            <View>
+            <ThemedText style={styles.noGuessLabel}> You did not submit a score, your time ran out...</ThemedText>
+            </View>
+          ) : (
+          
           <View style={styles.scoreResultRow}>
             <View style={[styles.guessScoreBox, { backgroundColor: '#FF3B30' }]}>
               <ThemedText style={styles.guessScoreText}>{homeScore}</ThemedText>
@@ -183,7 +235,7 @@ export default function HomeScreen() {
             <View style={[styles.guessScoreBox, { backgroundColor: '#FF3B30' }]}>
               <ThemedText style={styles.guessScoreText}>{awayScore}</ThemedText>
             </View>
-          </View>
+          </View> )}
         </View>
 
         {/* Points */}
@@ -294,7 +346,7 @@ const formatMatchDate = (dateString:string) => {
       </View>
 
       <View>
-        <CountdownTimer timerDuration={timeLimit} onTimeUp={()=> {setTimeIsUp(true) ,console.log(timeIsUp)}}></CountdownTimer>
+        <CountdownTimer timerDuration={timeLimit} onTimeUp={handeTimeIsUp} resetTrigger={resetTrigger}></CountdownTimer>
       </View>
 
       {matchData && (
@@ -406,9 +458,9 @@ const formatMatchDate = (dateString:string) => {
           {/* Action Buttons */}
           <View style={styles.actionContainer}>
             <TouchableOpacity 
-              style={[styles.submitButton, loading && styles.submitButtonDisabled]} 
+              style={[styles.submitButton, (loading || timeIsUp || isSubmitting) && styles.submitButtonDisabled]} 
               onPress={submitGuess}
-              disabled={loading || timeIsUp}
+              disabled={loading || timeIsUp || isSubmitting}
             >
               {loading ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
@@ -417,7 +469,10 @@ const formatMatchDate = (dateString:string) => {
               )}
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.newMatchButton} onPress={fetchRandomMatch}>
+            <TouchableOpacity style={styles.newMatchButton} onPress={()=>{
+              fetchRandomMatch();
+              handleReset();
+            }}>
               <ThemedText style={styles.newMatchButtonText}>🔄 New Match</ThemedText>
             </TouchableOpacity>
           </View>
@@ -636,6 +691,7 @@ const styles = StyleSheet.create({
   },
   submitButtonDisabled: {
     opacity: 0.6,
+    backgroundColor: '#A9A9A9',
   },
   submitButtonText: {
     color: '#FFFFFF',
@@ -818,6 +874,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 8,
     marginTop: 8,
+  },
+  noGuessLabel:{
+    fontSize:14,
+    color:'#8E8E93'
+
   },
   pointsContainer: {
     alignItems: 'center',

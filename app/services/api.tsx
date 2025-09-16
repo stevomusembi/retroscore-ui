@@ -50,10 +50,9 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    console.log("we have auth token", token);
     // If no token, request will be sent without Authorization header (guest user)
     
-    console.log('API Request:', config.method?.toUpperCase(), config.url);
+    // console.log('API Request:', config.method?.toUpperCase(), config.url);
     return config;
   },
   (error) => {
@@ -66,7 +65,7 @@ apiClient.interceptors.request.use(
 //  response interceptor for error handling
 apiClient.interceptors.response.use(
   (response) => {
-    console.log('API Response:', response.status, response.data);
+    // console.log('API Response:', response.status, response.data);
     return response;
   },
   (error) => {
@@ -131,7 +130,7 @@ export const retroScoreApi = {
   },
   updateGameTimeLimit:async ( limit:string)=>{
     try{
-      const response = await apiClient.patch(`settings/timeLimit?limit=${limit}`);
+      const response = await apiClient.patch(`settings/timeLimit?timeLimit=${limit}`);
       return response.data;
         
     } catch(err:any){

@@ -28,7 +28,7 @@ interface League {
 interface UserSettings {
   preferredLeague?: string;
   gameDifficulty?: string;
-  gameTimeLimit?:string;
+  timeLimit?:string;
   notificationsEnabled?: boolean;
   hintEnabled?:boolean;
 }
@@ -49,11 +49,11 @@ const DIFFICULTIES = [
 ];
 
 const TIMELIMIT = [
-  { id:  'TEN_SECONDS', name: '10 seconds', description: 'Ultimate challenge ', color: '#4CAF50' },
+  { id:  'TEN_SECONDS', name: '10 seconds', description: 'Ultimate challenge ', color: '#F44336' },
   { id: 'TWENTY_SECONDS', name: '20 seconds', description: 'For experienced players', color: '#FF9800' },
-  { id: 'TWENTY_FIVE_SECONDS', name: '25 seconds', description: 'Balanced challenge', color: '#F44336' },
-  { id: 'THIRTY_SECONDS', name: '30 seconds', description: 'Perfect for beginners', color: '#9C27B0' },
-   { id: 'FORTY_FIVE_SECONDS', name: '45 seconds', description: 'All the time', color: '#9C27B0' }
+  { id: 'TWENTY_FIVE_SECONDS', name: '25 seconds', description: 'Balanced challenge', color: '#9C27B0' },
+  { id: 'THIRTY_SECONDS', name: '30 seconds', description: 'Perfect for beginners', color: '#274eb0ff' },
+   { id: 'FORTY_FIVE_SECONDS', name: '45 seconds', description: 'All the time', color: '#4CAF50' }
 ];
 
 
@@ -120,9 +120,22 @@ export default function SettingsScreen() {
    const updateTimeLimit = async (limit: string) => {
     try {
       setLoading(true);
-      // await retroScoreApi.updateGameTimeLimit(limit);
-      setSettingsData({ ...settingsData, gameTimeLimit: limit });
-      setTimeLimitModalVisible(false); // Auto-close modal
+      await retroScoreApi.updateGameTimeLimit(limit);
+      setSettingsData({ ...settingsData, timeLimit: limit });
+      setTimeLimitModalVisible(false); 
+      
+      // update session storage 
+      const storedUser = sessionStorage.getItem("user");
+      if(storedUser){
+        try{
+          let user = JSON.parse(storedUser);
+          user.timeLimit = limit;
+          sessionStorage.setItem("user",JSON.stringify(user));
+
+        } catch(error){
+          console.error("Failed to parse user form session storage",error);
+        }
+      }
     } catch (err: any) {
       Alert.alert('Error', 'Failed to update time limit');
       console.error(err);
@@ -173,7 +186,7 @@ export default function SettingsScreen() {
   };
 
     const getSelectedTimeLimit = () => {
-    return TIMELIMIT.find(limit => limit.id === settingsData.gameTimeLimit);
+    return TIMELIMIT.find(limit => limit.id === settingsData.timeLimit);
   };
 
   const  handleLogout = async ()=> {
@@ -406,7 +419,7 @@ export default function SettingsScreen() {
                   key={limit.id}
                   style={[
                     styles.optionItem,
-                    settingsData.gameDifficulty === limit.id && styles.selectedOption
+                    settingsData.timeLimit === limit.id && styles.selectedOption
                   ]}
                   onPress={() => updateTimeLimit(limit.id)}
                   disabled={loading}
@@ -417,7 +430,7 @@ export default function SettingsScreen() {
                       <ThemedText style={styles.optionTitle}>{limit.name}</ThemedText>
                       <ThemedText style={styles.optionSubtitle}>{limit.description}</ThemedText>
                     </View>
-                    {settingsData.gameTimeLimit === limit.id && (
+                    {settingsData.timeLimit === limit.id && (
                       <Text style={styles.checkMark}>✓</Text>
                     )}
                   </View>

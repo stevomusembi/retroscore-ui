@@ -15,13 +15,15 @@ interface CountdownTimerProps {
   onTimeUp: () =>void;
   isActive?: boolean;
   style?: ViewStyle;
+  resetTrigger:any;
 }
 
 const CountdownTimer: React.FC<CountdownTimerProps> = ({ 
     timerDuration, 
     onTimeUp,
     isActive = true,
-    style = {} 
+    style = {},
+    resetTrigger
     }) => {
 
     const [timeLeft, setTimeLeft] = useState<number>(0);
@@ -51,13 +53,14 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({
     if (timerDuration) {
       const seconds = getSecondsFromDuration(timerDuration);
       setTimeLeft(seconds);
+      if(intervalRef.current){
+        clearInterval(intervalRef.current)
+        intervalRef.current = null;
+      }
     }
   
-  }, [timerDuration]);
+  }, [resetTrigger, timerDuration]);
 
-    onTimeUp = ():void =>{
-        console.log("cannot submit time is up");
-    }
   // Handle countdown logic
   useEffect(() => {
     if (isActive && timeLeft > 0) {

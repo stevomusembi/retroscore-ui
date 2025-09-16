@@ -71,10 +71,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
 
   const login = async (googleToken: string): Promise<boolean> => {
-    console.log("We got to the login api method to backend")
+    // console.log("We got to the login api method to backend")
     try {
       setIsLoading(true);
-      console.log("endpoin is => ", process.env.EXPO_PUBLIC_API_BASE_URL);
+      // console.log("endpoin is => ", process.env.EXPO_PUBLIC_API_BASE_URL);
 
       const response = await fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL}/auth/google/mobile`, {
         method: 'POST',
@@ -187,13 +187,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
       const userData = await SecureStore.getItemAsync(USER_DATA_KEY);
       
-      console.log("=== DEBUG TOKEN INFO ===");
-      console.log("Token:", token);
-      console.log("User Data:", userData);
-      console.log("=== END DEBUG ===");
+      // console.log("=== DEBUG TOKEN INFO ===");
+      // console.log("Token:", token);
+      // console.log("User Data:", userData);
+      // console.log("=== END DEBUG ===");
       
-      // You can also copy to clipboard if needed
-      // await Clipboard.setStringAsync(token);
       
     } catch (error) {
       console.log("Error retrieving token:", error);

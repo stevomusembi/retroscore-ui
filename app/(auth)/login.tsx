@@ -63,7 +63,6 @@ export default function LoginScreen() {
                      timeLimit:time_limit
                      };
         sessionStorage.setItem("user", JSON.stringify(user));
-        console.log("stored user", user);
         setIsAuthenticated(true);
 
         router.replace('/(tabs)/home');
