@@ -1,12 +1,12 @@
 import { format } from 'date-fns';
-import { useEffect, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   Dimensions,
   Image,
   Modal,
-  Platform,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -15,11 +15,11 @@ import {
   View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import CountdownTimer from '../components/CountDownTimer';
 import { ScoreWheel } from '../components/ScrollWheel';
 import { ThemedText } from '../components/ThemedText';
-import { debugToken, useAuth } from '../contexts/authContext';
 import retroScoreApi from '../services/api';
-import { debugLogoLoading, getFullLogoUrl } from '../utils/logoUtils';
+import { getFullLogoUrl } from '../utils/logoUtils';
 
 
 
@@ -43,6 +43,31 @@ const leagues = [
 ];
 
 export default function HomeScreen() {
+
+// reset and remount page when users click on home tab
+useFocusEffect(
+  useCallback(() => {
+    setGamePhase('playing');
+    setResult(null);
+    setTimeIsUp(false);
+    setIsSubmitting(false);
+    setHomeScore(0);
+    setAwayScore(0);
+    setError(null);
+
+    fetchRandomMatch();
+    
+    const storedUser = sessionStorage.getItem("user");
+    if (storedUser) {
+      try {
+        setTimeLimit(JSON.parse(storedUser).timeLimit);
+      } catch (error) {
+        console.error("Failed to parse user from session storage", error);
+      }
+    }
+  }, [])
+);
+
   const insets = useSafeAreaInsets();
   const [matchData, setMatchData] = useState<any>();
   const [loading, setLoading] = useState(false);
@@ -54,49 +79,22 @@ export default function HomeScreen() {
   const [showLeagueFilter, setShowLeagueFilter] = useState(false);
   const [selectedLeague, setSelectedLeague] = useState(leagues[0]);
   const [selectedSeason, setSelectedSeason] = useState('21-22');
-
-  const { isAuthenticated, user } = useAuth(); 
-
-  console.log("height and width is =>", height, width);
-  console.log("insets in this page ==> ", insets);
+  const [timeLimit, setTimeLimit] = useState<any>();
+  const [timeIsUp, setTimeIsUp] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resetTrigger, setResetTrigger] = useState<any>();
 
   const fetchRandomMatch = async () => {
-
-    let  userId:number|undefined;
-
-    if (Platform.OS == 'web'){
-      console.log("we are on web");
-      let storedUser = sessionStorage.getItem("user");
-      if(storedUser){
-        try{
-          const user = JSON.parse(storedUser);
-          userId = user.id;
-        } catch(error) {
-          console.error("failed to parse user from session storage", error);
-        }
-      }
-      // app android
-      } else { 
-      //conditional check if user is guest or logged in 
-      if ((isAuthenticated && user) ) {
-        // Logged in user - use their actual ID
-        console.log("user is => ",user);
-        userId = user.id;
-        debugToken();
-      } else {
-        // Guest user - use special guest handling
-        userId = 1;
-      }
-    }
-  
-    if (userId === undefined) {
-  console.error("User ID is undefined—cannot fetch match");
-  return;}
+    handleReset();
     setLoading(true);
     setError(null);
     setGamePhase('playing');
     setHomeScore(0);
     setAwayScore(0);
+    setIsSubmitting(false);
+    setTimeIsUp(false);
+    
+
 
     try {
       const data = await retroScoreApi.getRandomMatch();
@@ -112,32 +110,62 @@ export default function HomeScreen() {
 
   const submitGuess = async () => {
     try {
+      if (isSubmitting) return; 
       setLoading(true);
+      setIsSubmitting(true);
       const guessData = {
         matchId: matchData.matchId,
         predictedHomeScore: homeScore,
-        predictedAwayScore: awayScore
+        predictedAwayScore: awayScore,
+        timeIsUp:timeIsUp
       }
-      
       const response = await retroScoreApi.submitGuess(guessData);
       setResult(response);
       setGamePhase('result');
     } catch (err: any) {
       Alert.alert('Error', err.message);
-      console.log("Error", err);
+      console.error("Error", err);
     } finally {
+      setIsSubmitting(false);
       setLoading(false);
     }
   };
 
+  const handeTimeIsUp = () => {
+    setTimeIsUp(true);
+  }
+
+  const handleReset = ()=> {
+  setResetTrigger(Date.now());
+  }
+
   useEffect(() => {
+    if (timeIsUp) {
+      submitGuess();
+    }
+  }, [timeIsUp]);
+
+
+
+  useEffect(() => {
+   const storedUser = sessionStorage.getItem("user");
+    if(storedUser){
+      try{
+        setTimeLimit(JSON.parse(storedUser).timeLimit);
+
+      } catch(error){
+        console.error("Failed to parse user form session storage",error);
+      }
+    }
+
     fetchRandomMatch();
+
   }, []);
 
   //used to debug if logos are loading
   useEffect(() => {
     if (matchData) {
-      debugLogoLoading(matchData);
+      // debugLogoLoading(matchData);
     }
   }, [matchData]);
 
@@ -166,9 +194,6 @@ export default function HomeScreen() {
           <ThemedText style={styles.resultEmoji}>
             {result.isCorrectScore && result.isCorrectResult ? '🎯' : result.isCorrectResult ? '⚡' : '🎲'}
           </ThemedText>
-          <ThemedText style={styles.resultTitle}>
-            {result.isCorrectScore && result.isCorrectResult ? 'Perfect Score!' : result.isCorrectResult ? 'Close Call!' : 'Try Again!'}
-          </ThemedText>
           <ThemedText style={styles.resultSubtitle}>
             {result.resultMessage}
           </ThemedText>
@@ -196,6 +221,12 @@ export default function HomeScreen() {
           </View>
 
           <ThemedText style={styles.yourGuessLabel}>Your Guess</ThemedText>
+          {timeIsUp ? (
+            <View>
+            <ThemedText style={styles.noGuessLabel}> You did not submit a score, your time ran out...</ThemedText>
+            </View>
+          ) : (
+          
           <View style={styles.scoreResultRow}>
             <View style={[styles.guessScoreBox, { backgroundColor: '#FF3B30' }]}>
               <ThemedText style={styles.guessScoreText}>{homeScore}</ThemedText>
@@ -204,7 +235,7 @@ export default function HomeScreen() {
             <View style={[styles.guessScoreBox, { backgroundColor: '#FF3B30' }]}>
               <ThemedText style={styles.guessScoreText}>{awayScore}</ThemedText>
             </View>
-          </View>
+          </View> )}
         </View>
 
         {/* Points */}
@@ -235,7 +266,7 @@ const formatMatchDate = (dateString:string) => {
   try {
     return format(date, 'dd MMM yyyy');
   } catch (error) {
-    console.log('Date formatting error:', error);
+    console.error('Date formatting error:', error);
     return 'Date Error';
   }
 };
@@ -314,6 +345,10 @@ const formatMatchDate = (dateString:string) => {
         </TouchableOpacity>
       </View>
 
+      <View>
+        <CountdownTimer timerDuration={timeLimit} onTimeUp={handeTimeIsUp} resetTrigger={resetTrigger}></CountdownTimer>
+      </View>
+
       {matchData && (
   <>
     {/* Teams Display */}
@@ -329,11 +364,11 @@ const formatMatchDate = (dateString:string) => {
               source={{ uri: getFullLogoUrl(matchData.homeTeam.logoUrl) }}
               style={styles.logoImage}
               resizeMode="contain" // This ensures consistent sizing!
-              onLoadStart={() => console.log('🟡 Home logo loading started')}
-              onLoad={() => console.log('✅ Home logo loaded successfully')}
+              // onLoadStart={() => console.log('🟡 Home logo loading started')}
+              // onLoad={() => console.log('✅ Home logo loaded successfully')}
               onError={(error) => {
-              console.log('❌ Home logo failed to load:', error.nativeEvent.error);
-              console.log('🔍 Attempted URL:', getFullLogoUrl(matchData.homeTeam.logoUrl));
+              // console.log('❌ Home logo failed to load:', error.nativeEvent.error);
+              // console.log('🔍 Attempted URL:', getFullLogoUrl(matchData.homeTeam.logoUrl));
              
               }}
             />
@@ -423,9 +458,9 @@ const formatMatchDate = (dateString:string) => {
           {/* Action Buttons */}
           <View style={styles.actionContainer}>
             <TouchableOpacity 
-              style={[styles.submitButton, loading && styles.submitButtonDisabled]} 
+              style={[styles.submitButton, (loading || timeIsUp || isSubmitting) && styles.submitButtonDisabled]} 
               onPress={submitGuess}
-              disabled={loading}
+              disabled={loading || timeIsUp || isSubmitting}
             >
               {loading ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
@@ -434,7 +469,10 @@ const formatMatchDate = (dateString:string) => {
               )}
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.newMatchButton} onPress={fetchRandomMatch}>
+            <TouchableOpacity style={styles.newMatchButton} onPress={()=>{
+              fetchRandomMatch();
+              handleReset();
+            }}>
               <ThemedText style={styles.newMatchButtonText}>🔄 New Match</ThemedText>
             </TouchableOpacity>
           </View>
@@ -451,15 +489,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#151718',
-    // paddingTop:insets.top,
-
   },
     scrollContainer: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 20, // Increase bottom padding
+    paddingBottom: 20,
     minHeight: height * 1.2,
   },
   correctBg: {
@@ -480,15 +516,15 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    paddingTop: 10,
-    paddingBottom: 12,
+    paddingTop: 8,
+    paddingBottom: 8,
     paddingHorizontal: 24,
   },
   appTitle: {
     fontSize: 24,
     fontWeight: '700',
     color: '#FFFFFF',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   leagueContainer: {
     backgroundColor: '#1C1C1E',
@@ -655,6 +691,7 @@ const styles = StyleSheet.create({
   },
   submitButtonDisabled: {
     opacity: 0.6,
+    backgroundColor: '#A9A9A9',
   },
   submitButtonText: {
     color: '#FFFFFF',
@@ -745,11 +782,11 @@ const styles = StyleSheet.create({
   // Result Screen Styles
   resultHeader: {
     alignItems: 'center',
-    paddingVertical: 40,
+    paddingVertical: 20,
     paddingHorizontal: 24,
   },
   resultEmoji: {
-    fontSize: 64,
+    fontSize: 44,
     marginBottom: 16,
   },
   resultTitle: {
@@ -837,6 +874,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 8,
     marginTop: 8,
+  },
+  noGuessLabel:{
+    fontSize:14,
+    color:'#8E8E93'
+
   },
   pointsContainer: {
     alignItems: 'center',

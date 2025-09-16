@@ -14,7 +14,7 @@ export default function IndexPage() {
         flex: 1, 
         justifyContent: 'center', 
         alignItems: 'center', 
-        backgroundColor: '#e82727ff' 
+        backgroundColor: '#000' 
       }}>
         <ActivityIndicator size="large" color="#4285f4" />
       </View>

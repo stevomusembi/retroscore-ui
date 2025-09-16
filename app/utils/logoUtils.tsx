@@ -13,15 +13,15 @@ export const getFullLogoUrl = (logoUrl:any) => {
   }
   
   const fullUrl = `${API_BASE_URL}${logoUrl}`;
-  console.log('🔍 Loading logo from:', fullUrl); // Debug log
+  // console.log('🔍 Loading logo from:', fullUrl); // Debug log
   return fullUrl;
 };
 
 // Add this debug helper
 export const debugLogoLoading = (matchData:any) => {
-  console.log('🏠 Home logo URL:', matchData.homeTeam?.logoUrl);
-  console.log('🏠 Full home URL:', getFullLogoUrl(matchData.homeTeam?.logoUrl));
+  // console.log('🏠 Home logo URL:', matchData.homeTeam?.logoUrl);
+  // console.log('🏠 Full home URL:', getFullLogoUrl(matchData.homeTeam?.logoUrl));
   
-  console.log('✈️ Away logo URL:', matchData.awayTeam?.logoUrl);
-  console.log('✈️ Full away URL:', getFullLogoUrl(matchData.awayTeam?.logoUrl));
+  // console.log('✈️ Away logo URL:', matchData.awayTeam?.logoUrl);
+  // console.log('✈️ Full away URL:', getFullLogoUrl(matchData.awayTeam?.logoUrl));
 }
