@@ -106,7 +106,7 @@ const ResultSelector: React.FC<TeamPredictionSelectorProps> = ({
   return (
     <View style={styles.container}>
       <Text style={[styles.title, { color: colors.text }]}>
-        Select Your Prediction
+        Select Result
       </Text>
       
       <View style={styles.optionsContainer}>
