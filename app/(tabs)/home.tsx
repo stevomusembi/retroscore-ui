@@ -31,17 +31,15 @@ const awayColors ='#546abaff';
 const { width, height } = Dimensions.get('window');
 
 const eplSeasons = [
-  '10-11', '11-12', '12-13', '13-14', '14-15',
   '15-16', '16-17', '17-18', '18-19', '19-20',
   '20-21', '21-22', '22-23', '23-24', '24-25'
 ];
 
-const uclSeasons = [...eplSeasons]; // Same range for now
+const uclSeasons = [...eplSeasons];
 
 const leagues = [
   { id: 'epl', name: 'Premier League ', seasons: eplSeasons, emoji:'🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
   { id: 'ucl', name: 'Champions League', seasons: uclSeasons, emoji:'⚽️' }
-  // La Liga and others can be added later...
 ];
 
 export default function HomeScreen() {
@@ -86,7 +84,7 @@ useFocusEffect(
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resetTrigger, setResetTrigger] = useState<any>();
   const [isEasyMode, setIsEasyMode] = useState<boolean>(false);
-  const [matchResult, setMatchResult] = useState<string>();
+  const [matchResult, setMatchResult] = useState<string>('');
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const switchAnim = useRef(new Animated.Value(0)).current;
 
@@ -151,7 +149,6 @@ useFocusEffect(
 
   const handleResultSelect = (selected:any)=>{
     setMatchResult(selected);
-    console.log("result has been selected", selected);
   }
 const toggleMode = () => {
   const newMode = !isEasyMode;
@@ -173,7 +170,9 @@ const toggleMode = () => {
   ]).start();
 };
 
-  
+const formatResultText = (result: string): string => {
+  return result.replace('_', ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+};
 
   useEffect(() => {
     if (timeIsUp) {
@@ -220,10 +219,10 @@ const toggleMode = () => {
     return (
       <SafeAreaView style={[styles.container, result.isCorrectResult ? styles.correctBg : styles.incorrectBg]}>
          <ScrollView 
-        style={styles.scrollContainer}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}>
-        <StatusBar barStyle="light-content" />
+          style={styles.scrollContainer}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}>
+          <StatusBar barStyle="light-content" />
         
         {/* Result Header */}
         <View style={styles.resultHeader}>
@@ -237,52 +236,65 @@ const toggleMode = () => {
 
         {/* Score Comparison */}
         <View style={styles.scoreComparison}>
-          {isEasyMode ? (
-            <View>
-              <ThemedText>Correct result was </ThemedText>
+          {isEasyMode ?
+            (timeIsUp ? (
               <View>
-                <ThemedText>  {result.actualMatchResult}</ThemedText>
-              </View>
-              <ThemedText style={styles.yourGuessLabel}>Your Guess</ThemedText>
+                <ThemedText style={styles.noGuessLabel}>
+                  You didn’t submit a result in time...
+                </ThemedText>
+                <View style={styles.easyModeResult}>
+                  <ThemedText>Correct result was</ThemedText>
+                  <ThemedText style={styles.easyModeResultLabel}>{formatResultText(result.actualMatchResult)}</ThemedText>
+                </View>
+              </View>)
+            :(
               <View>
-                <ThemedText> {matchResult}</ThemedText>
-              </View>
-            </View>)
-              :(
-            <View>
-                <View style={styles.matchHeader}>
-                  <ThemedText style={styles.comparisonTitle}>Final Score</ThemedText>
+                <View style={styles.easyModeResult}>
+                  <ThemedText>Correct result was </ThemedText>
+                  <ThemedText style={styles.easyModeResultLabel}>  {formatResultText(result.actualMatchResult)}</ThemedText>
                 </View>
-                <View style={styles.teamsResultRow}>
-                  <ThemedText style={styles.teamNameResult}>{matchData?.homeTeam?.name}</ThemedText>
-                  <ThemedText style={styles.teamNameResult}>{matchData?.awayTeam?.name}</ThemedText>
+                <View style={styles.easyModeResult}>
+                  <ThemedText>Your Guess was </ThemedText>
+                  <ThemedText style={[styles.easyModeResultLabel,{ backgroundColor: result.isCorrectResult ? '#34C759' : '#FF3B30' }]}> 
+                    {formatResultText(matchResult)}</ThemedText>
                 </View>
-                <View style={styles.scoreResultRow}>
-                  <View style={[styles.actualScoreBox, { backgroundColor: '#34C759' }]}>
-                    <ThemedText style={styles.actualScoreText}>{result.actualHomeScore}</ThemedText>
+              </View>)
+            )
+            :(
+              <View>
+                  <View style={styles.matchHeader}>
+                    <ThemedText style={styles.comparisonTitle}>Final Score</ThemedText>
                   </View>
-                  <ThemedText style={styles.resultDash}>-</ThemedText>
-                  <View style={[styles.actualScoreBox, { backgroundColor: '#34C759' }]}>
-                    <ThemedText style={styles.actualScoreText}>{result.actualAwayScore}</ThemedText>
+                  <View style={styles.teamsResultRow}>
+                    <ThemedText style={styles.teamNameResult}>{matchData?.homeTeam?.name}</ThemedText>
+                    <ThemedText style={styles.teamNameResult}>{matchData?.awayTeam?.name}</ThemedText>
                   </View>
-                </View>
+                  <View style={styles.scoreResultRow}>
+                    <View style={[styles.actualScoreBox, { backgroundColor: '#34C759' }]}>
+                      <ThemedText style={styles.actualScoreText}>{result.actualHomeScore}</ThemedText>
+                    </View>
+                    <ThemedText style={styles.resultDash}>-</ThemedText>
+                    <View style={[styles.actualScoreBox, { backgroundColor: '#34C759' }]}>
+                      <ThemedText style={styles.actualScoreText}>{result.actualAwayScore}</ThemedText>
+                    </View>
+                  </View>
 
-                <ThemedText style={styles.yourGuessLabel}>Your Guess</ThemedText>
-                {timeIsUp ? (
-                  <View>
-                  <ThemedText style={styles.noGuessLabel}> You did not submit a score, your time ran out...</ThemedText>
-                  </View>
-                ) : (
-                <View style={styles.scoreResultRow}>
-                  <View style={[styles.guessScoreBox, { backgroundColor: '#FF3B30' }]}>
-                    <ThemedText style={styles.guessScoreText}>{homeScore}</ThemedText>
-                  </View>
-                  <ThemedText style={styles.resultDash}>-</ThemedText>
-                  <View style={[styles.guessScoreBox, { backgroundColor: '#FF3B30' }]}>
-                    <ThemedText style={styles.guessScoreText}>{awayScore}</ThemedText>
-                  </View>
-                </View> )}
-            </View>
+                  <ThemedText style={styles.yourGuessLabel}>Your Guess</ThemedText>
+                  {timeIsUp ? (
+                    <View>
+                    <ThemedText style={styles.noGuessLabel}> You did not submit a score, your time ran out...</ThemedText>
+                    </View>
+                  ) : (
+                  <View style={styles.scoreResultRow}>
+                    <View style={[styles.guessScoreBox, { backgroundColor: '#FF3B30' }]}>
+                      <ThemedText style={styles.guessScoreText}>{homeScore}</ThemedText>
+                    </View>
+                    <ThemedText style={styles.resultDash}>-</ThemedText>
+                    <View style={[styles.guessScoreBox, { backgroundColor: '#FF3B30' }]}>
+                      <ThemedText style={styles.guessScoreText}>{awayScore}</ThemedText>
+                    </View>
+                  </View> )}
+              </View>
           )}
 
         </View>
@@ -563,7 +575,7 @@ const formatMatchDate = (dateString:string) => {
               {loading ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
-                <ThemedText style={styles.submitButtonText}>Submit Prediction</ThemedText>
+                <ThemedText style={styles.submitButtonText}>Submit</ThemedText>
               )}
             </TouchableOpacity>
 
@@ -701,7 +713,7 @@ const styles = StyleSheet.create({
   teamLogo: {
     width: 80,
     height: 80,
-    borderRadius: 40, // Make it perfectly circular (width/2)
+    borderRadius: 40, 
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
@@ -713,14 +725,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
-    overflow: 'hidden', // Ensures content stays within circle
+    overflow: 'hidden', 
   },
   logoImage: {
     width: 80,  
     height: 80,     
   },
   teamLogoText: {
-    fontSize: 24, // Slightly larger for better visibility
+    fontSize: 24, 
     fontWeight: '700',
     color: '#ffffff',
     textAlign: 'center',
@@ -772,13 +784,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 20,
-    paddingHorizontal: 20,
+    paddingHorizontal: 30,
   },
   modePromptText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
     marginRight: 15,
+    padding:4
   },
   toggleSwitch: {
     padding: 4,
@@ -960,6 +973,20 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 24,
     marginBottom: 24,
+  },
+  easyModeResult:{
+    flexDirection:'row',
+    alignItems:'center',
+    justifyContent:'space-between',
+    marginBottom:10,
+  },
+  easyModeResultLabel:{
+    paddingHorizontal:10,
+    paddingVertical:6,
+    backgroundColor:'#34C759',
+    color:'#FFFFFF',
+    fontWeight:400,
+    borderRadius:8
   },
   matchHeader: {
     alignItems: 'center',
