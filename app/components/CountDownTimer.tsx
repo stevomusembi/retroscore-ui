@@ -30,8 +30,8 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({
     const intervalRef: any = useRef<NodeJS.Timeout | null>(null);
 
     // Circle properties
-    const size = 60;
-    const strokeWidth = 6;
+    const size = 40;
+    const strokeWidth = 4;
     const radius = (size - strokeWidth) / 2;
     const circumference = radius * 2 * Math.PI;
 
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     height: '75%',
   },
   timerText: {
-    fontSize: 18,
+    fontSize: 12,
     fontWeight: 'bold',
     fontFamily: 'monospace',
   },
