@@ -20,6 +20,15 @@ const getInitials = (username: string) => {
   return username.slice(0, 2).toUpperCase();
 };
 
+const getRankIcon = (rank: number) => {
+  switch (rank) {
+    case 1: return '🥇';
+    case 2: return '🥈';  
+    case 3: return '🥉';
+    default: return null;
+  }
+};
+
 export default function LeaderboardScreen() {
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
@@ -27,6 +36,33 @@ export default function LeaderboardScreen() {
   const [leaderboardData, setLeaderboardData] = useState<any>(null);
   const [userRank, setUserRank] = useState<any>(null);
   const { width, height } = Dimensions.get('window');
+
+   // Generate fake leaderboard entries for visualization
+  const generateFakeEntries = (startRank: number, count: number) => {
+    const fakeUsernames = [
+      'GameMaster2024', 'PredictionKing', 'ScoreNinja', 'FootballGuru',
+      'MatchWizard', 'GoalPredictor', 'ChampionPlayer', 'VictorySeeker',
+      'TacticalGenius', 'FieldExpert', 'ProPredictor', 'LeagueHero',
+      'StadiumStar', 'FantasyPro', 'MatchMaker', 'ScoreLegend',
+      'GameChanger', 'WinStreaker', 'TopScorer', 'ElitePlayer'
+    ];
+    
+    const entries = [];
+    for (let i = 0; i < count; i++) {
+      const rank = startRank + i;
+      const basePoints = Math.max(10, 200 - (rank * 8) + Math.floor(Math.random() * 20));
+      entries.push({
+        userId: 1000 + rank,
+        username: fakeUsernames[i % fakeUsernames.length] || `Player${rank}`,
+        totalPoints: basePoints,
+        gamesPlayed: Math.floor(Math.random() * 50) + 20,
+        winPercentage: Math.floor(Math.random() * 40) + 10,
+        rank: rank,
+        profilePictureURL: Math.random() > 0.6 ? null : `https://i.pravatar.cc/150?u=${1000 + rank}`
+      });
+    }
+    return entries;
+  }
   
   const getLeaderboardData = async () => {
     setLoading(true);
@@ -35,8 +71,23 @@ export default function LeaderboardScreen() {
         retroScoreApi.getLeaderBoard(0, 20),
         retroScoreApi.getUserStats() 
       ]);
+      let enhancedLeaderboard = { ...leaderboard };
       
-      setLeaderboardData(leaderboard);
+      // Add fake entries if we have fewer than 5 real entries
+      if (leaderboard?.entries && leaderboard.entries.length < 5) {
+        const realEntries = leaderboard.entries;
+        const nextRank = realEntries.length + 1;
+        const fakeEntriesNeeded = 20 - realEntries.length;
+        const fakeEntries = generateFakeEntries(nextRank, fakeEntriesNeeded);
+        
+        enhancedLeaderboard = {
+          ...leaderboard,
+          entries: [...realEntries, ...fakeEntries],
+          totalUsers: 20
+        };
+      }
+      
+      setLeaderboardData(enhancedLeaderboard);
       setUserRank(userStats);
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
@@ -65,96 +116,129 @@ export default function LeaderboardScreen() {
   };
 
   const renderLeaderboardItem = ({ item, index }: {item:any, index:number}) => {
-    const profileImageStyle = item.profilePic 
-      ? styles.profileImage 
-      : [styles.profileImage, styles.profilePlaceholder, getProfileImage(item.username)];
+    const isTopThree = index < 3;
+    const rankIcon = getRankIcon(index + 1);
+    const profileImageStyle = item.profilePictureURL 
+      ? styles.leaderboardProfileImage 
+      : [styles.leaderboardProfileImage, styles.leaderboardProfilePlaceholder, getProfileImage(item.username)];
 
     return (
-      <ThemedView style={styles.leaderboardItem}>
-        {/* Rank */}
-        <View style={styles.rankContainer}>
-          <ThemedText style={[
-            styles.rankText,
-            index < 3 && styles.topThreeRank
-          ]}>
-            {index + 1}
-          </ThemedText>
-        </View>
-        
-        {/* Profile Picture */}
-        <View style={styles.profileContainer}>
-          {item.profilePic ? (
-            <Image source={{ uri: item.profilePic }} style={profileImageStyle} />
-          ) : (
-            <View style={profileImageStyle}>
-              <ThemedText style={styles.initialsText}>
-                {getInitials(item.username)}
+      <ThemedView style={[
+        styles.leaderboardItemCard,
+        isTopThree && styles.topThreeCard
+      ]}>
+        <View style={styles.leaderboardItemLeft}>
+          {/* Rank with special styling for top 3 */}
+          <View style={styles.leaderboardRankContainer}>
+            {rankIcon ? (
+              <ThemedText style={styles.rankIcon}>{rankIcon}</ThemedText>
+            ) : (
+              <ThemedText style={styles.leaderboardRankText}>
+                {index + 1}
               </ThemedText>
-            </View>
-          )}
-        </View>
-        
-        {/* Player Info */}
-        <View style={styles.playerInfo}>
-          <ThemedText style={styles.usernameText}>{item.username}</ThemedText>
-          <ThemedText style={styles.statsText}>
-            {item.gamesPlayed} games
-          </ThemedText>
-        </View>
-        
-        {/* Points with styling similar to reference */}
-        <View style={styles.pointsContainer}>
-          <ThemedText style={styles.pointsText}>
-            +{formatPoints(item.totalPoints)}
-          </ThemedText>
-          <View style={styles.coinIcon}>
-            <ThemedText style={styles.coinText}>💰</ThemedText>
+            )}
           </View>
+          
+          {/* Profile Picture */}
+          <View style={styles.leaderboardProfileContainer}>
+            {item.profilePictureURL ? (
+              <Image source={{ uri: item.profilePictureURL }} style={profileImageStyle} />
+            ) : (
+              <View style={profileImageStyle}>
+                <ThemedText style={styles.leaderboardInitialsText}>
+                  {getInitials(item.username)}
+                </ThemedText>
+              </View>
+            )}
+          </View>
+          
+          {/* Player Info */}
+          <View style={styles.leaderboardPlayerInfo}>
+            <ThemedText style={[
+              styles.leaderboardUsernameText,]}>
+              {item.username}
+            </ThemedText>
+            <ThemedText style={styles.leaderboardStatsText}>
+              {item.gamesPlayed} games played
+            </ThemedText>
+          </View>
+        </View>
+        
+        {/* Points */}
+        <View style={styles.leaderboardPointsContainer}>
+          <ThemedText style={[
+            styles.leaderboardPointsText,
+            isTopThree && styles.topThreePoints
+          ]}>
+            {formatPoints(item.totalPoints)}
+          </ThemedText>
+          <ThemedText style={styles.leaderboardPointsLabel}>points</ThemedText>
         </View>
       </ThemedView>
     );
   };
 
-  const renderCurrentUserCard = () => {
+  const renderUserStatsCard = () => {
     if (!userRank) return null;
 
-    const profileImageStyle = userRank.profilePic 
-      ? styles.profileImageSmall 
-      : [styles.profileImageSmall, styles.profilePlaceholder, getProfileImage(userRank.username)];
+    const profileImageStyle = userRank.profilePictureURL 
+      ? styles.userStatsProfileImage 
+      : [styles.userStatsProfileImage, styles.userStatsProfilePlaceholder, getProfileImage(userRank.username)];
 
     return (
-      <ThemedView style={styles.currentUserCard}>
-        <ThemedText style={styles.cardTitle}>Your Position</ThemedText>
-        <View style={styles.userRankRow}>
-          <View style={styles.userRankLeft}>
-            <ThemedText style={styles.userRankNumber}>#{userRank.currentRank}</ThemedText>
-            
-            <View style={styles.userProfileContainer}>
-              {userRank.profilePic ? (
-                <Image source={{ uri: userRank.profilePic }} style={profileImageStyle} />
+      <ThemedView style={styles.userStatsCard}>
+        <View style={styles.userStatsMainRow}>
+          {/* Left side: Profile, Name, Rank */}
+          <View style={styles.userStatsLeftSection}>
+            <View style={styles.userStatsProfileContainer}>
+              {userRank.profilePictureURL ? (
+                <Image source={{ uri: userRank.profilePictureURL }} style={profileImageStyle} />
               ) : (
                 <View style={profileImageStyle}>
-                  <ThemedText style={styles.initialsTextSmall}>
+                  <ThemedText style={styles.userStatsInitialsText}>
                     {getInitials(userRank.username)}
                   </ThemedText>
                 </View>
               )}
             </View>
             
-            <View style={styles.userInfoContainer}>
-              <ThemedText style={styles.userNameText}>{userRank.username}</ThemedText>
-              <ThemedText style={styles.userStatsText}>
-                {userRank.gamesPlayed} games • {userRank.winPercentage?.toFixed(1)}% win rate
+            <View style={styles.userStatsBasicInfo}>
+              <ThemedText style={styles.userStatsUsernameText}>
+                {userRank.username}
               </ThemedText>
+              <View style={styles.userStatsRankRow}>
+                <ThemedText style={styles.userStatsRankText}>
+                  Rank #{userRank.currentRank}
+                </ThemedText>
+                <View style={styles.userStatsDivider} />
+                <ThemedText style={styles.userStatsPointsText}>
+                  {formatPoints(userRank.totalPoints)} pts
+                </ThemedText>
+              </View>
             </View>
           </View>
           
-          <View style={styles.userPointsContainer}>
-            <ThemedText style={styles.userPointsText}>
-              +{formatPoints(userRank.totalPoints)}
-            </ThemedText>
-            <View style={styles.coinIcon}>
-              <ThemedText style={styles.coinText}>💰</ThemedText>
+          {/* Right side: Detailed stats */}
+          <View style={styles.userStatsRightSection}>
+            <View style={styles.userStatsDetailRow}>
+              <ThemedText style={styles.userStatsDetailValue}>
+                {userRank.gamesPlayed}
+              </ThemedText>
+              <ThemedText style={styles.userStatsDetailLabel}>games</ThemedText>
+            </View>
+            
+            <View style={styles.userStatsDetailRow}>
+              <ThemedText style={styles.userStatsDetailValue}>
+                {userRank.correctResultPredictions}
+              </ThemedText>
+              <ThemedText style={styles.userStatsDetailLabel}>correct</ThemedText>
+            </View>
+            
+            <View style={styles.userStatsDetailRow}>
+              <ThemedText style={styles.userStatsDetailValue}>
+                {userRank.winPercentage?.toFixed(0)}%
+              </ThemedText>
+              <ThemedText style={styles.userStatsDetailLabel}>win rate</ThemedText>
             </View>
           </View>
         </View>
@@ -163,253 +247,289 @@ export default function LeaderboardScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container,{paddingTop: insets.top}]}>
+    <SafeAreaView style={[styles.container, {paddingTop: insets.top}]}>
       <ScrollView 
-                      style={styles.scrollContainer}
-                      contentContainerStyle={[styles.scrollContent,{height:height*1.2}]}
-                      showsVerticalScrollIndicator={false}>
-      <ThemedView style={styles.content}>
-        {/* Header */}
-        <View style={styles.header}>
-          <ThemedText style={styles.title}>The best players</ThemedText>
-          <ThemedText style={styles.subtitle}>of the last 7 days</ThemedText>
-        </View>
-        
-        {/* World Section */}
-        <View style={styles.worldSection}>
-          <View style={styles.worldHeader}>
-            <View style={styles.worldIcon}>
-              <ThemedText style={styles.worldEmoji}>🌍</ThemedText>
-            </View>
-            <ThemedText style={styles.worldText}>World</ThemedText>
+        style={styles.scrollContainer}
+        contentContainerStyle={[styles.scrollContent, {height: height * 1.2}]}
+        showsVerticalScrollIndicator={false}
+      >
+        <ThemedView style={styles.content}>
+          {/* Header */}
+          <View style={styles.headerSection}>
+            <ThemedText style={styles.headerTitle}>Leaderboard</ThemedText>
           </View>
           
-          {/* Current User Card */}
-          {renderCurrentUserCard()}
+          {/* User Stats Section */}
+          <View style={styles.userStatsSection}>
+            <View style={styles.sectionHeader}>
+              <ThemedText style={styles.sectionTitle}>Your Performance</ThemedText>
+            </View>
+            {renderUserStatsCard()}
+          </View>
 
-          {/* Top Players List */}
-          <FlatList
-            data={leaderboardData?.entries || []}
-            renderItem={renderLeaderboardItem}
-            keyExtractor={(item) => item.userId.toString()}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-            style={styles.leaderboardList}
-            showsVerticalScrollIndicator={false}
-          />
-        </View>
-      </ThemedView>
+          {/* Global Leaderboard Section */}
+          <View style={[styles.globalLeaderboardSection,{marginBottom:50}]}>
+            <View style={styles.sectionHeader}>
+              <ThemedText style={styles.sectionTitle}>Global Rankings</ThemedText>
+            </View>
+            
+            <FlatList
+              data={leaderboardData?.entries || []}
+              renderItem={renderLeaderboardItem}
+              keyExtractor={(item) => item.userId.toString()}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              }
+              style={styles.leaderboardList}
+              showsVerticalScrollIndicator={false}
+            />
+          </View>
+        </ThemedView>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  // Main container styles
   container: {
     flex: 1,
     backgroundColor: '#000000',
   },
-    scrollContainer: {
+  scrollContainer: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
     paddingBottom: 20,
-   
   },
   content: {
     flex: 1,
-    paddingTop: 60,
+    paddingTop: 40,
   },
-  header: {
+  
+  // Header section styles
+  headerSection: {
     paddingHorizontal: 24,
     marginBottom: 32,
   },
-  title: {
+  headerTitle: {
     fontSize: 32,
     fontWeight: '700',
     color: '#FFFFFF',
-    lineHeight: 38,
+    textAlign: 'center',
+    letterSpacing: -0.5,
   },
-  subtitle: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    lineHeight: 38,
-  },
-  worldSection: {
-    flex: 1,
-    backgroundColor: '#1C1C1E',
-    marginHorizontal: 16,
-    borderRadius: 24,
-    paddingTop: 24,
-    paddingHorizontal: 16,
-  },
-  worldHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
+  
+  // Section styles
+  sectionHeader: {
     paddingHorizontal: 8,
+    marginBottom: 16,
   },
-  worldIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#2C2C2E',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  worldEmoji: {
+  sectionTitle: {
     fontSize: 18,
-  },
-  worldText: {
-    fontSize: 20,
     fontWeight: '600',
     color: '#FFFFFF',
+    letterSpacing: -0.3,
   },
-  currentUserCard: {
-    backgroundColor: '#2C2C2E',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
+  
+  // User stats section styles
+  userStatsSection: {
+    marginHorizontal: 16,
+    marginBottom: 32,
+    backgroundColor: '#111111',
+    borderRadius: 20,
+    padding: 20,
     borderWidth: 1,
-    borderColor: '#3A3A3C',
+    borderColor: '#1C1C1E',
   },
-  cardTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#8E8E93',
-    marginBottom: 12,
+  userStatsCard: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#2C2C2E',
   },
-  userRankRow: {
+  userStatsMainRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  userRankLeft: {
+  userStatsLeftSection: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-  userRankNumber: {
+  userStatsProfileContainer: {
+    marginRight: 16,
+  },
+  userStatsProfileImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#2C2C2E',
+  },
+  userStatsProfilePlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  userStatsInitialsText: {
     fontSize: 18,
     fontWeight: '700',
     color: '#FFFFFF',
-    marginRight: 12,
-    minWidth: 24,
   },
-  userProfileContainer: {
-    marginRight: 12,
-  },
-  profileImageSmall: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-  },
-  userInfoContainer: {
+  userStatsBasicInfo: {
     flex: 1,
   },
-  userNameText: {
-    fontSize: 16,
+  userStatsUsernameText: {
+    fontSize: 18,
     fontWeight: '600',
     color: '#FFFFFF',
-    marginBottom: 2,
+    marginBottom: 6,
+    letterSpacing: -0.2,
   },
-  userStatsText: {
-    fontSize: 13,
-    color: '#8E8E93',
-  },
-  userPointsContainer: {
+  userStatsRankRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  userPointsText: {
-    fontSize: 16,
-    fontWeight: '700',
+  userStatsRankText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#FFD60A',
+  },
+  userStatsDivider: {
+    width: 1,
+    height: 12,
+    backgroundColor: '#3A3A3C',
+    marginHorizontal: 12,
+  },
+  userStatsPointsText: {
+    fontSize: 14,
+    fontWeight: '500',
     color: '#34C759',
-    marginRight: 4,
+  },
+  userStatsRightSection: {
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  userStatsDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 4,
+  },
+  userStatsDetailValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  userStatsDetailLabel: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: '#8E8E93',
+  },
+  
+  // Global leaderboard section styles
+  globalLeaderboardSection: {
+    flex: 1,
+    backgroundColor: '#111111',
+    marginHorizontal: 16,
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#1C1C1E',
   },
   leaderboardList: {
     flex: 1,
   },
-  leaderboardItem: {
+  
+  // Leaderboard item styles
+  leaderboardItemCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2C2C2E',
+    justifyContent: 'space-between',
+    backgroundColor: '#1C1C1E',
     paddingVertical: 16,
     paddingHorizontal: 16,
-    borderRadius: 12,
+    borderRadius: 14,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#3A3A3C',
+    borderColor: '#2C2C2E',
   },
-  rankContainer: {
-    minWidth: 32,
-    alignItems: 'flex-start',
-    marginRight: 12,
+  topThreeCard: {
+    backgroundColor: '#1A1A1C',
+    borderColor: '#FFD60A',
+    borderWidth: 1,
   },
-  rankText: {
-    fontSize: 16,
-    fontWeight: '700',
+  leaderboardItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  leaderboardRankContainer: {
+    minWidth: 40,
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  leaderboardRankText: {
+    fontSize: 14,
+    fontWeight: '600',
     color: '#8E8E93',
   },
-  topThreeRank: {
-    color: '#FFD60A',
+  rankIcon: {
+    fontSize: 24,
   },
-  profileContainer: {
-    marginRight: 12,
+  leaderboardProfileContainer: {
+    marginRight: 16,
   },
-  profileImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  leaderboardProfileImage: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#2C2C2E',
   },
-  profilePlaceholder: {
+  leaderboardProfilePlaceholder: {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  initialsText: {
+  leaderboardInitialsText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#FFFFFF',
   },
-  initialsTextSmall: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  playerInfo: {
+  leaderboardPlayerInfo: {
     flex: 1,
   },
-  usernameText: {
+  leaderboardUsernameText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
     marginBottom: 2,
+    letterSpacing: -0.2,
   },
-  statsText: {
+  leaderboardStatsText: {
     fontSize: 13,
     color: '#8E8E93',
+    fontWeight: '400',
   },
-  pointsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  leaderboardPointsContainer: {
+    alignItems: 'flex-end',
   },
-  pointsText: {
-    fontSize: 16,
+  leaderboardPointsText: {
+    fontSize: 18,
     fontWeight: '700',
-    color: '#34C759',
-    marginRight: 4,
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
   },
-  coinIcon: {
-    width: 16,
-    height: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+  topThreePoints: {
+    color: '#FFD60A',
   },
-  coinText: {
-    fontSize: 12,
+  leaderboardPointsLabel: {
+    fontSize: 11,
+    color: '#8E8E93',
+    fontWeight: '400',
+    marginTop: 1,
   },
 });
