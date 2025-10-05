@@ -38,7 +38,7 @@ export default function LeaderboardScreen() {
   const { width, height } = Dimensions.get('window');
 
    // Generate fake leaderboard entries for visualization
-  const generateFakeEntries = (startRank: number, count: number) => {
+  const generateFakeEntries = (startRank: number, count: number,maxPoints:number) => {
     const fakeUsernames = [
       'GameMaster2024', 'PredictionKing', 'ScoreNinja', 'FootballGuru',
       'MatchWizard', 'GoalPredictor', 'ChampionPlayer', 'VictorySeeker',
@@ -46,15 +46,21 @@ export default function LeaderboardScreen() {
       'StadiumStar', 'FantasyPro', 'MatchMaker', 'ScoreLegend',
       'GameChanger', 'WinStreaker', 'TopScorer', 'ElitePlayer'
     ];
-    
+    const minPoints = 10;
+    const pointsRange = maxPoints - minPoints;
     const entries = [];
     for (let i = 0; i < count; i++) {
       const rank = startRank + i;
-      const basePoints = Math.max(10, 200 - (rank * 8) + Math.floor(Math.random() * 20));
+
+      const decayFactor = Math.pow(0.95, i);
+      const basePoints = Math.floor(maxPoints * decayFactor);
+      const randomVariation = Math.floor(Math.random() * 5) - 2;
+      const finalPoints = Math.max(minPoints, basePoints + randomVariation);
+
       entries.push({
         userId: 1000 + rank,
         username: fakeUsernames[i % fakeUsernames.length] || `Player${rank}`,
-        totalPoints: basePoints,
+        totalPoints: finalPoints,
         gamesPlayed: Math.floor(Math.random() * 50) + 20,
         winPercentage: Math.floor(Math.random() * 40) + 10,
         rank: rank,
@@ -78,7 +84,8 @@ export default function LeaderboardScreen() {
         const realEntries = leaderboard.entries;
         const nextRank = realEntries.length + 1;
         const fakeEntriesNeeded = 20 - realEntries.length;
-        const fakeEntries = generateFakeEntries(nextRank, fakeEntriesNeeded);
+        const lowestRealPoints = realEntries[realEntries.length - 1]?.totalPoints ?? 10;
+        const fakeEntries = generateFakeEntries(nextRank, fakeEntriesNeeded,lowestRealPoints);
         
         enhancedLeaderboard = {
           ...leaderboard,
@@ -210,11 +217,12 @@ export default function LeaderboardScreen() {
                 <ThemedText style={styles.userStatsRankText}>
                   Rank #{userRank.currentRank}
                 </ThemedText>
-                <View style={styles.userStatsDivider} />
-                <ThemedText style={styles.userStatsPointsText}>
-                  {formatPoints(userRank.totalPoints)} pts
-                </ThemedText>
               </View>
+
+                {/* <View style={styles.userStatsDivider} /> */}
+                <ThemedText style={styles.userStatsPointsText}>
+                  {formatPoints(userRank.totalPoints)} points
+                </ThemedText>
             </View>
           </View>
           
@@ -231,7 +239,13 @@ export default function LeaderboardScreen() {
               <ThemedText style={styles.userStatsDetailValue}>
                 {userRank.correctResultPredictions}
               </ThemedText>
-              <ThemedText style={styles.userStatsDetailLabel}>correct</ThemedText>
+              <ThemedText style={styles.userStatsDetailLabel}>correct result</ThemedText>
+            </View>
+            <View style={styles.userStatsDetailRow}>
+              <ThemedText style={styles.userStatsDetailValue}>
+                {userRank.exactScorePredictions}
+              </ThemedText>
+              <ThemedText style={styles.userStatsDetailLabel}>exact scores</ThemedText>
             </View>
             
             <View style={styles.userStatsDetailRow}>
@@ -356,16 +370,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   userStatsLeftSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
     flex: 1,
   },
   userStatsProfileContainer: {
     marginRight: 16,
   },
   userStatsProfileImage: {
-    width: 60,
-    height: 60,
+    width: 80,
+    height: 80,
     borderRadius: 20,
     borderWidth: 2,
     borderColor: '#2C2C2E',
@@ -411,7 +425,7 @@ const styles = StyleSheet.create({
   },
   userStatsRightSection: {
     flexDirection: 'column',
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
     gap: 8,
   },
   userStatsDetailRow: {
