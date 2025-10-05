@@ -217,11 +217,12 @@ export default function LeaderboardScreen() {
                 <ThemedText style={styles.userStatsRankText}>
                   Rank #{userRank.currentRank}
                 </ThemedText>
-                <View style={styles.userStatsDivider} />
-                <ThemedText style={styles.userStatsPointsText}>
-                  {formatPoints(userRank.totalPoints)} pts
-                </ThemedText>
               </View>
+
+                {/* <View style={styles.userStatsDivider} /> */}
+                <ThemedText style={styles.userStatsPointsText}>
+                  {formatPoints(userRank.totalPoints)} points
+                </ThemedText>
             </View>
           </View>
           
@@ -238,7 +239,13 @@ export default function LeaderboardScreen() {
               <ThemedText style={styles.userStatsDetailValue}>
                 {userRank.correctResultPredictions}
               </ThemedText>
-              <ThemedText style={styles.userStatsDetailLabel}>correct</ThemedText>
+              <ThemedText style={styles.userStatsDetailLabel}>correct result</ThemedText>
+            </View>
+            <View style={styles.userStatsDetailRow}>
+              <ThemedText style={styles.userStatsDetailValue}>
+                {userRank.exactScorePredictions}
+              </ThemedText>
+              <ThemedText style={styles.userStatsDetailLabel}>exact scores</ThemedText>
             </View>
             
             <View style={styles.userStatsDetailRow}>
@@ -363,16 +370,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   userStatsLeftSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
     flex: 1,
   },
   userStatsProfileContainer: {
     marginRight: 16,
   },
   userStatsProfileImage: {
-    width: 60,
-    height: 60,
+    width: 80,
+    height: 80,
     borderRadius: 20,
     borderWidth: 2,
     borderColor: '#2C2C2E',
@@ -418,7 +425,7 @@ const styles = StyleSheet.create({
   },
   userStatsRightSection: {
     flexDirection: 'column',
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
     gap: 8,
   },
   userStatsDetailRow: {
