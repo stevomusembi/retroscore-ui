@@ -200,286 +200,286 @@ export default function SettingsScreen() {
           style={styles.scrollContainer}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}>
-      <ThemedView style={styles.content}>
-        <ThemedText style={styles.title}>Settings</ThemedText>
-        
-        {/* Notifications Toggle */}
-        <ThemedView style={styles.notificationContainer}>
-          <ThemedView style={styles.notificationRow}>
-            <ThemedText style={styles.notificationLabel}>🔔 Notifications</ThemedText>
-            <Switch
-              trackColor={{ false: '#767577', true: '#4CAF50' }}
-              thumbColor={settingsData.notificationsEnabled ? '#fff' : '#f4f3f4'}
-              onValueChange={updateNotifications}
-              value={settingsData.notificationsEnabled || false}
-              disabled={loading}
-            />
+        <ThemedView style={styles.content}>
+          <ThemedText style={styles.title}>Settings</ThemedText>
+          
+          {/* Notifications Toggle */}
+          <ThemedView style={styles.notificationContainer}>
+            <ThemedView style={styles.notificationRow}>
+              <ThemedText style={styles.notificationLabel}>🔔 Notifications</ThemedText>
+              <Switch
+                trackColor={{ false: '#767577', true: '#4CAF50' }}
+                thumbColor={settingsData.notificationsEnabled ? '#fff' : '#f4f3f4'}
+                onValueChange={updateNotifications}
+                value={settingsData.notificationsEnabled || false}
+                disabled={loading}
+              />
+            </ThemedView>
           </ThemedView>
-        </ThemedView>
 
-             {/* hints Toggle */}
-        <ThemedView style={styles.notificationContainer}>
-          <ThemedView style={styles.notificationRow}>
-            <ThemedText style={styles.notificationLabel}>💡 Show hint </ThemedText>
-            <Switch
-              trackColor={{ false: '#767577', true: '#4CAF50' }}
-              thumbColor={settingsData.hintEnabled ? '#fff' : '#f4f3f4'}
-              onValueChange={updateHint}
-              value={settingsData.hintEnabled || false}
+              {/* hints Toggle */}
+          {/* <ThemedView style={styles.notificationContainer}>
+            <ThemedView style={styles.notificationRow}>
+              <ThemedText style={styles.notificationLabel}>💡 Show hint </ThemedText>
+              <Switch
+                trackColor={{ false: '#767577', true: '#4CAF50' }}
+                thumbColor={settingsData.hintEnabled ? '#fff' : '#f4f3f4'}
+                onValueChange={updateHint}
+                value={settingsData.hintEnabled || false}
+                disabled={loading}
+              />
+            </ThemedView>
+          </ThemedView> */}
+
+
+          <ThemedView style={styles.settingsList}>
+            {/* League Preferences */}
+            <TouchableOpacity 
+              style={styles.settingItem} 
+              onPress={() => setLeagueModalVisible(true)}
               disabled={loading}
-            />
-          </ThemedView>
-        </ThemedView>
-
-
-        <ThemedView style={styles.settingsList}>
-          {/* League Preferences */}
-          <TouchableOpacity 
-            style={styles.settingItem} 
-            onPress={() => setLeagueModalVisible(true)}
-            disabled={loading}
-          >
-            <View style={styles.settingContent}>
-              <View style={styles.settingTextContainer}>
-                <ThemedText style={styles.settingText}>🏆 League Preferences</ThemedText>
-                <ThemedText style={styles.currentValueDisplay}>
-                  {getSelectedLeague() 
-                    ? `${getSelectedLeague()?.name} ${getSelectedLeague()?.flag} `
-                    : "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League"
-                  }
-                </ThemedText>
-              </View>
-              <Text style={styles.chevronIcon}>›</Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* Game Difficulty */}
-          <TouchableOpacity 
-            style={styles.settingItem} 
-            onPress={() => setDifficultyModalVisible(true)}
-            disabled={loading}
-          >
-            <View style={styles.settingContent}>
-              <View style={styles.settingTextContainer}>
-                <ThemedText style={styles.settingText}>📊 Game Difficulty</ThemedText>
-                <ThemedText style={[
-                  styles.currentValueDisplay,
-                  getSelectedDifficulty() && { color: getSelectedDifficulty()?.color }
-                ]}>
-                  {getSelectedDifficulty()?.name || "Medium"}
-                </ThemedText>
-              </View>
-              <Text style={styles.chevronIcon}>›</Text>
-            </View>
-          </TouchableOpacity>
-
-             {/* Game Time Limit */}
-          <TouchableOpacity 
-            style={styles.settingItem} 
-            onPress={() => setTimeLimitModalVisible(true)}
-            disabled={loading}
-          >
-            <View style={styles.settingContent}>
-              <View style={styles.settingTextContainer}>
-                <ThemedText style={styles.settingText}>⏳ Game Time Limit</ThemedText>
-                <ThemedText style={[
-                  styles.currentValueDisplay,
-                  getSelectedTimeLimit() && { color: getSelectedTimeLimit()?.color }
-                ]}>
-                  {getSelectedTimeLimit()?.name || "Thirty Seconds"}
-                </ThemedText>
-              </View>
-              <Text style={styles.chevronIcon}>›</Text>
-            </View>
-          </TouchableOpacity>
-
-             {/*Logout */}
-          <TouchableOpacity 
-            style={styles.settingItem} 
-            onPress={() => handleLogout()}
-            disabled={loading}
-          >
-            <View style={styles.settingContent}>
-              <View style={styles.settingTextContainer}>
-                <ThemedText style={styles.settingText}>Logout</ThemedText>
-                <ThemedText style={styles.currentValueDisplay}>logout
-                </ThemedText>
-              </View>
-              <Text style={styles.chevronIcon}>›</Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* About */}
-          <TouchableOpacity 
-            style={[styles.settingItem,{marginBottom:50}]} 
-            onPress={() => setAboutModalVisible(true)}
-          >
-            <View style={styles.settingContent}>
-              <View style={styles.settingTextContainer}>
-                <ThemedText style={styles.settingText}>ℹ️ About</ThemedText>
-                <ThemedText style={styles.currentValueDisplay}>
-                  App information & details
-                </ThemedText>
-              </View>
-              <Text style={styles.chevronIcon}>›</Text>
-            </View>
-          </TouchableOpacity>
-        </ThemedView>
-      </ThemedView>
-
-      {/* League Selection Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={leagueModalVisible}
-        onRequestClose={() => setLeagueModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <ThemedText style={styles.modalTitle}>Select League</ThemedText>
-            <ScrollView style={styles.optionsList}>
-              {LEAGUES.map((league) => (
-                <TouchableOpacity
-                  key={league.id}
-                  style={[
-                    styles.optionItem,
-                    settingsData.preferredLeague === league.id && styles.selectedOption
-                  ]}
-                  onPress={() => updateLeaguePreference(league.id)}
-                  disabled={loading}
-                >
-                  <View style={styles.optionContent}>
-                    <Text style={styles.flagEmoji}>{league.flag}</Text>
-                    <View style={styles.optionTextContainer}>
-                      <ThemedText style={styles.optionTitle}>{league.name}</ThemedText>
-                      <ThemedText style={styles.optionSubtitle}>{league.country}</ThemedText>
-                    </View>
-                    {settingsData.preferredLeague === league.id && (
-                      <Text style={styles.checkMark}>✓</Text>
-                    )}
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Difficulty Selection Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={difficultyModalVisible}
-        onRequestClose={() => setDifficultyModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <ThemedText style={styles.modalTitle}>Select Difficulty</ThemedText>
-            <ScrollView style={styles.optionsList}>
-              {DIFFICULTIES.map((difficulty) => (
-                <TouchableOpacity
-                  key={difficulty.id}
-                  style={[
-                    styles.optionItem,
-                    settingsData.gameDifficulty === difficulty.id && styles.selectedOption
-                  ]}
-                  onPress={() => updateDifficulty(difficulty.id)}
-                  disabled={loading}
-                >
-                  <View style={styles.optionContent}>
-                    <View style={[styles.difficultyIndicator, { backgroundColor: difficulty.color }]} />
-                    <View style={styles.optionTextContainer}>
-                      <ThemedText style={styles.optionTitle}>{difficulty.name}</ThemedText>
-                      <ThemedText style={styles.optionSubtitle}>{difficulty.description}</ThemedText>
-                    </View>
-                    {settingsData.gameDifficulty === difficulty.id && (
-                      <Text style={styles.checkMark}>✓</Text>
-                    )}
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-
-    {/* time limit Selection Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={timelimitModalVisible}
-        onRequestClose={() => setTimeLimitModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <ThemedText style={styles.modalTitle}>Select time limit</ThemedText>
-            <ScrollView style={styles.optionsList}>
-              {TIMELIMIT.map((limit) => (
-                <TouchableOpacity
-                  key={limit.id}
-                  style={[
-                    styles.optionItem,
-                    settingsData.timeLimit === limit.id && styles.selectedOption
-                  ]}
-                  onPress={() => updateTimeLimit(limit.id)}
-                  disabled={loading}
-                >
-                  <View style={styles.optionContent}>
-                    <View style={[styles.difficultyIndicator, { backgroundColor: limit.color }]} />
-                    <View style={styles.optionTextContainer}>
-                      <ThemedText style={styles.optionTitle}>{limit.name}</ThemedText>
-                      <ThemedText style={styles.optionSubtitle}>{limit.description}</ThemedText>
-                    </View>
-                    {settingsData.timeLimit === limit.id && (
-                      <Text style={styles.checkMark}>✓</Text>
-                    )}
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-      {/* About Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={aboutModalVisible}
-        onRequestClose={() => setAboutModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <ThemedText style={styles.modalTitle}>About RetroScore</ThemedText>
-            <ScrollView style={styles.aboutContent}>
-              <ThemedText style={styles.aboutText}>
-                🏆 Welcome to RetroScore - the ultimate football quiz experience!
-              </ThemedText>
-              <ThemedText style={styles.aboutText}>
-                Test your football knowledge with questions spanning across different leagues, 
-                eras, and difficulty levels. From classic matches to modern-day football, 
-                challenge yourself and climb the leaderboards!
-              </ThemedText>
-              <ThemedText style={styles.aboutSection}>Features:</ThemedText>
-              <ThemedText style={styles.aboutBullet}>• Multiple league support</ThemedText>
-              <ThemedText style={styles.aboutBullet}>• Adaptive difficulty levels</ThemedText>
-              <ThemedText style={styles.aboutBullet}>• Historical football data</ThemedText>
-              <ThemedText style={styles.aboutBullet}>• Customizable notifications</ThemedText>
-              
-              <ThemedText style={styles.aboutSection}>Version:</ThemedText>
-              <ThemedText style={styles.aboutText}>1.0.0</ThemedText>
-              
-              <ThemedText style={styles.aboutSection}>Developer:</ThemedText>
-              <ThemedText style={styles.aboutText}>RetroScore Team</ThemedText>
-            </ScrollView>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setAboutModalVisible(false)}
             >
-              <ThemedText style={styles.closeButtonText}>Close</ThemedText>
+              <View style={styles.settingContent}>
+                <View style={styles.settingTextContainer}>
+                  <ThemedText style={styles.settingText}>🏆 League Preferences</ThemedText>
+                  <ThemedText style={styles.currentValueDisplay}>
+                    {getSelectedLeague() 
+                      ? `${getSelectedLeague()?.name} ${getSelectedLeague()?.flag} `
+                      : "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League"
+                    }
+                  </ThemedText>
+                </View>
+                <Text style={styles.chevronIcon}>›</Text>
+              </View>
             </TouchableOpacity>
+
+            {/* Game Difficulty */}
+            {/* <TouchableOpacity 
+              style={styles.settingItem} 
+              onPress={() => setDifficultyModalVisible(true)}
+              disabled={loading}
+            >
+              <View style={styles.settingContent}>
+                <View style={styles.settingTextContainer}>
+                  <ThemedText style={styles.settingText}>📊 Game Difficulty</ThemedText>
+                  <ThemedText style={[
+                    styles.currentValueDisplay,
+                    getSelectedDifficulty() && { color: getSelectedDifficulty()?.color }
+                  ]}>
+                    {getSelectedDifficulty()?.name || "Medium"}
+                  </ThemedText>
+                </View>
+                <Text style={styles.chevronIcon}>›</Text>
+              </View>
+            </TouchableOpacity> */}
+
+              {/* Game Time Limit */}
+            <TouchableOpacity 
+              style={styles.settingItem} 
+              onPress={() => setTimeLimitModalVisible(true)}
+              disabled={loading}
+            >
+              <View style={styles.settingContent}>
+                <View style={styles.settingTextContainer}>
+                  <ThemedText style={styles.settingText}>⏳ Game Time Limit</ThemedText>
+                  <ThemedText style={[
+                    styles.currentValueDisplay,
+                    getSelectedTimeLimit() && { color: getSelectedTimeLimit()?.color }
+                  ]}>
+                    {getSelectedTimeLimit()?.name || "Thirty Seconds"}
+                  </ThemedText>
+                </View>
+                <Text style={styles.chevronIcon}>›</Text>
+              </View>
+            </TouchableOpacity>
+
+              {/*Logout */}
+            <TouchableOpacity 
+              style={styles.settingItem} 
+              onPress={() => handleLogout()}
+              disabled={loading}
+            >
+              <View style={styles.settingContent}>
+                <View style={styles.settingTextContainer}>
+                  <ThemedText style={styles.settingText}>Logout</ThemedText>
+                  <ThemedText style={styles.currentValueDisplay}>logout
+                  </ThemedText>
+                </View>
+                <Text style={styles.chevronIcon}>›</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* About */}
+            <TouchableOpacity 
+              style={[styles.settingItem,{marginBottom:50}]} 
+              onPress={() => setAboutModalVisible(true)}
+            >
+              <View style={styles.settingContent}>
+                <View style={styles.settingTextContainer}>
+                  <ThemedText style={styles.settingText}>ℹ️ About</ThemedText>
+                  <ThemedText style={styles.currentValueDisplay}>
+                    App information & details
+                  </ThemedText>
+                </View>
+                <Text style={styles.chevronIcon}>›</Text>
+              </View>
+            </TouchableOpacity>
+          </ThemedView>
+        </ThemedView>
+
+        {/* League Selection Modal */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={leagueModalVisible}
+          onRequestClose={() => setLeagueModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <ThemedText style={styles.modalTitle}>Select League</ThemedText>
+              <ScrollView style={styles.optionsList}>
+                {LEAGUES.map((league) => (
+                  <TouchableOpacity
+                    key={league.id}
+                    style={[
+                      styles.optionItem,
+                      settingsData.preferredLeague === league.id && styles.selectedOption
+                    ]}
+                    onPress={() => updateLeaguePreference(league.id)}
+                    disabled={loading}
+                  >
+                    <View style={styles.optionContent}>
+                      <Text style={styles.flagEmoji}>{league.flag}</Text>
+                      <View style={styles.optionTextContainer}>
+                        <ThemedText style={styles.optionTitle}>{league.name}</ThemedText>
+                        <ThemedText style={styles.optionSubtitle}>{league.country}</ThemedText>
+                      </View>
+                      {settingsData.preferredLeague === league.id && (
+                        <Text style={styles.checkMark}>✓</Text>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+
+        {/* Difficulty Selection Modal */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={difficultyModalVisible}
+          onRequestClose={() => setDifficultyModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <ThemedText style={styles.modalTitle}>Select Difficulty</ThemedText>
+              <ScrollView style={styles.optionsList}>
+                {DIFFICULTIES.map((difficulty) => (
+                  <TouchableOpacity
+                    key={difficulty.id}
+                    style={[
+                      styles.optionItem,
+                      settingsData.gameDifficulty === difficulty.id && styles.selectedOption
+                    ]}
+                    onPress={() => updateDifficulty(difficulty.id)}
+                    disabled={loading}
+                  >
+                    <View style={styles.optionContent}>
+                      <View style={[styles.difficultyIndicator, { backgroundColor: difficulty.color }]} />
+                      <View style={styles.optionTextContainer}>
+                        <ThemedText style={styles.optionTitle}>{difficulty.name}</ThemedText>
+                        <ThemedText style={styles.optionSubtitle}>{difficulty.description}</ThemedText>
+                      </View>
+                      {settingsData.gameDifficulty === difficulty.id && (
+                        <Text style={styles.checkMark}>✓</Text>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+
+        {/* time limit Selection Modal */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={timelimitModalVisible}
+          onRequestClose={() => setTimeLimitModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <ThemedText style={styles.modalTitle}>Select time limit</ThemedText>
+              <ScrollView style={styles.optionsList}>
+                {TIMELIMIT.map((limit) => (
+                  <TouchableOpacity
+                    key={limit.id}
+                    style={[
+                      styles.optionItem,
+                      settingsData.timeLimit === limit.id && styles.selectedOption
+                    ]}
+                    onPress={() => updateTimeLimit(limit.id)}
+                    disabled={loading}
+                  >
+                    <View style={styles.optionContent}>
+                      <View style={[styles.difficultyIndicator, { backgroundColor: limit.color }]} />
+                      <View style={styles.optionTextContainer}>
+                        <ThemedText style={styles.optionTitle}>{limit.name}</ThemedText>
+                        <ThemedText style={styles.optionSubtitle}>{limit.description}</ThemedText>
+                      </View>
+                      {settingsData.timeLimit === limit.id && (
+                        <Text style={styles.checkMark}>✓</Text>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+        {/* About Modal */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={aboutModalVisible}
+          onRequestClose={() => setAboutModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <ThemedText style={styles.modalTitle}>About RetroScore</ThemedText>
+              <ScrollView style={styles.aboutContent}>
+                <ThemedText style={styles.aboutText}>
+                  🏆 Welcome to RetroScore - the ultimate football quiz experience!
+                </ThemedText>
+                <ThemedText style={styles.aboutText}>
+                  Test your football knowledge with questions spanning across different leagues, 
+                  eras, and difficulty levels. From classic matches to modern-day football, 
+                  challenge yourself and climb the leaderboards!
+                </ThemedText>
+                <ThemedText style={styles.aboutSection}>Features:</ThemedText>
+                <ThemedText style={styles.aboutBullet}>• Multiple league support</ThemedText>
+                <ThemedText style={styles.aboutBullet}>• Adaptive difficulty levels</ThemedText>
+                <ThemedText style={styles.aboutBullet}>• Historical football data</ThemedText>
+                <ThemedText style={styles.aboutBullet}>• Customizable notifications</ThemedText>
+                
+                <ThemedText style={styles.aboutSection}>Version:</ThemedText>
+                <ThemedText style={styles.aboutText}>1.0.0</ThemedText>
+                
+                <ThemedText style={styles.aboutSection}>Developer:</ThemedText>
+                <ThemedText style={styles.aboutText}>RetroScore Team</ThemedText>
+              </ScrollView>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setAboutModalVisible(false)}
+              >
+                <ThemedText style={styles.closeButtonText}>Close</ThemedText>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     </SafeAreaView>
   );
@@ -488,8 +488,7 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
- 
+    backgroundColor: '#1a1a1a', 
   },
    scrollContainer: {
     flex: 1,
@@ -500,6 +499,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
+    flex:1,
     
   },
   title: {
