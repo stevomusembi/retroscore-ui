@@ -29,9 +29,9 @@ const ResultSelector: React.FC<TeamPredictionSelectorProps> = ({
   };
 
   const options = [
-    { id: 'home_win', label: homeTeamName+" win", emoji: '🏆' },
+    { id: 'home_win', label: homeTeamName+" won", emoji: '🏆' },
     { id: 'draw', label: 'Draw', emoji: '🤝' },
-    { id: 'away_win', label: awayTeamName + " win", emoji: '🏆' }
+    { id: 'away_win', label: awayTeamName + " won", emoji: '🏆' }
   ];
 
   const handleSelection = (optionId: string) => {

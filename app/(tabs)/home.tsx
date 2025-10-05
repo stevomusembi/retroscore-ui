@@ -8,6 +8,8 @@ import {
   Dimensions,
   Image,
   Modal,
+  Platform,
+  Pressable,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -39,7 +41,7 @@ const uclSeasons = [...eplSeasons];
 
 const leagues = [
   { id: 'epl', name: 'Premier League ', seasons: eplSeasons, emoji:'🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
-  { id: 'ucl', name: 'Champions League', seasons: uclSeasons, emoji:'⚽️' }
+  // { id: 'ucl', name: 'Champions League', seasons: uclSeasons, emoji:'⚽️' }
 ];
 
 export default function HomeScreen() {
@@ -87,6 +89,7 @@ useFocusEffect(
   const [matchResult, setMatchResult] = useState<string>('');
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const switchAnim = useRef(new Animated.Value(0)).current;
+  const [showErrorModal,setShowErrorModal] = useState(false);
 
   const fetchRandomMatch = async () => {
     handleReset();
@@ -116,6 +119,10 @@ useFocusEffect(
 
     try {
       if (isSubmitting) return; 
+      if(isEasyMode && matchResult == ''){
+        Platform.OS === 'web' ? setShowErrorModal(true): Alert.alert('Error', "Please select a result, then submit");
+        return;
+      }
       setLoading(true);
       setIsSubmitting(true);
       const guessData = {
@@ -144,6 +151,8 @@ useFocusEffect(
   }
 
   const handleReset = ()=> {
+  setTimeIsUp(false);
+  setMatchResult('');
   setResetTrigger(Date.now());
   }
 
@@ -250,7 +259,7 @@ const formatResultText = (result: string): string => {
             :(
               <View>
                 <View style={styles.easyModeResult}>
-                  <ThemedText>Correct result was </ThemedText>
+                  <ThemedText>Correct result </ThemedText>
                   <ThemedText style={styles.easyModeResultLabel}>  {formatResultText(result.actualMatchResult)}</ThemedText>
                 </View>
                 <View style={styles.easyModeResult}>
@@ -379,6 +388,25 @@ const formatMatchDate = (dateString:string) => {
               </View>
             ))}
           </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+
+  const WebModal = () => (
+    <Modal
+      visible={showErrorModal}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={() => setShowErrorModal(false)}
+    >
+      <View style={styles.errorModalOverlay}>
+        <View style={styles.errorModal}>
+          <ThemedText style={styles.errorModalTitle}>Error</ThemedText>
+          <ThemedText style={styles.errorModalMessage}>Please select a result before submitting.</ThemedText>
+          <Pressable style={styles.errorModalButton} onPress={() => setShowErrorModal(false)}>
+            <ThemedText style={styles.errorModalButtonText}>OK</ThemedText>
+          </Pressable>
         </View>
       </View>
     </Modal>
@@ -590,6 +618,7 @@ const formatMatchDate = (dateString:string) => {
       )}
 
       <LeagueFilterModal />
+      <WebModal />
     </ScrollView>
     </SafeAreaView>
   );
@@ -942,6 +971,42 @@ const styles = StyleSheet.create({
   },
   seasonButtonTextSelected: {
     color: '#FFFFFF',
+  },
+  errorModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorModal: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 8,
+    width: '80%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  errorModalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 10,
+    color:'#171717'
+  },
+  errorModalMessage: {
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: 'center',
+    color:'#171717'
+  },
+  errorModalButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 6,
+  },
+  errorModalButtonText: {
+    color: '#fff',
+    fontWeight: '500',
   },
   // Result Screen Styles
   resultHeader: {
