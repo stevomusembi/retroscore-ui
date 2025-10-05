@@ -119,10 +119,11 @@ useFocusEffect(
 
     try {
       if (isSubmitting) return; 
-      if(isEasyMode && matchResult == ''){
+      if(isEasyMode && matchResult == '' && !timeIsUp){
         Platform.OS === 'web' ? setShowErrorModal(true): Alert.alert('Error', "Please select a result, then submit");
         return;
       }
+   
       setLoading(true);
       setIsSubmitting(true);
       const guessData = {
@@ -147,6 +148,9 @@ useFocusEffect(
   };
 
   const handeTimeIsUp = () => {
+    if(isEasyMode && matchResult == ''){
+      setMatchResult('draw');
+    }
     setTimeIsUp(true);
   }
 
