@@ -34,41 +34,23 @@ export default function LeaderboardScreen() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [leaderboardData, setLeaderboardData] = useState<any>(null);
+  const [userStats, setUserStats] = useState<any>(null);
   const [userRank, setUserRank] = useState<any>(null);
   const { width, height } = Dimensions.get('window');
 
-   // Generate fake leaderboard entries for visualization
-  const generateFakeEntries = (startRank: number, count: number,maxPoints:number) => {
-    const fakeUsernames = [
-      'GameMaster2024', 'PredictionKing', 'ScoreNinja', 'FootballGuru',
-      'MatchWizard', 'GoalPredictor', 'ChampionPlayer', 'VictorySeeker',
-      'TacticalGenius', 'FieldExpert', 'ProPredictor', 'LeagueHero',
-      'StadiumStar', 'FantasyPro', 'MatchMaker', 'ScoreLegend',
-      'GameChanger', 'WinStreaker', 'TopScorer', 'ElitePlayer'
-    ];
-    const minPoints = 10;
-    const pointsRange = maxPoints - minPoints;
-    const entries = [];
-    for (let i = 0; i < count; i++) {
-      const rank = startRank + i;
+ const FAKE_LEADERBOARD_POOL = [
+  { userId: 9001, username: 'GameMaster2024', totalPoints: 850, gamesPlayed: 45, winPercentage: 75, profilePictureURL: 'https://i.pravatar.cc/150?u=9001' },
+  { userId: 9002, username: 'PredictionKing', totalPoints: 720, gamesPlayed: 38, winPercentage: 68, profilePictureURL: null },
+  { userId: 9003, username: 'ScoreNinja', totalPoints: 580, gamesPlayed: 42, winPercentage: 62, profilePictureURL: 'https://i.pravatar.cc/150?u=9003' },
+  { userId: 9004, username: 'FootballGuru', totalPoints: 450, gamesPlayed: 35, winPercentage: 58, profilePictureURL: 'https://i.pravatar.cc/150?u=9004' },
+  { userId: 9005, username: 'MatchWizard', totalPoints: 340, gamesPlayed: 30, winPercentage: 52, profilePictureURL: null },
+  { userId: 9006, username: 'GoalPredictor', totalPoints: 260, gamesPlayed: 28, winPercentage: 48, profilePictureURL: 'https://i.pravatar.cc/150?u=9006' },
+  { userId: 9007, username: 'ChampionPlayer', totalPoints: 190, gamesPlayed: 25, winPercentage: 42, profilePictureURL: 'https://i.pravatar.cc/150?u=9007' },
+  { userId: 9008, username: 'VictorySeeker', totalPoints: 135, gamesPlayed: 22, winPercentage: 38, profilePictureURL: null },
+  { userId: 9009, username: 'TacticalGenius', totalPoints: 85, gamesPlayed: 18, winPercentage: 32, profilePictureURL: 'https://i.pravatar.cc/150?u=9009' },
+  { userId: 9010, username: 'FieldExpert', totalPoints: 45, gamesPlayed: 15, winPercentage: 25, profilePictureURL: 'https://i.pravatar.cc/150?u=9010' },
+  ];
 
-      const decayFactor = Math.pow(0.95, i);
-      const basePoints = Math.floor(maxPoints * decayFactor);
-      const randomVariation = Math.floor(Math.random() * 5) - 2;
-      const finalPoints = Math.max(minPoints, basePoints + randomVariation);
-
-      entries.push({
-        userId: 1000 + rank,
-        username: fakeUsernames[i % fakeUsernames.length] || `Player${rank}`,
-        totalPoints: finalPoints,
-        gamesPlayed: Math.floor(Math.random() * 50) + 20,
-        winPercentage: Math.floor(Math.random() * 40) + 10,
-        rank: rank,
-        profilePictureURL: Math.random() > 0.6 ? null : `https://i.pravatar.cc/150?u=${1000 + rank}`
-      });
-    }
-    return entries;
-  }
   
   const getLeaderboardData = async () => {
     setLoading(true);
@@ -77,25 +59,32 @@ export default function LeaderboardScreen() {
         retroScoreApi.getLeaderBoard(0, 20),
         retroScoreApi.getUserStats() 
       ]);
-      let enhancedLeaderboard = { ...leaderboard };
-      
-      // Add fake entries if we have fewer than 5 real entries
-      if (leaderboard?.entries && leaderboard.entries.length < 5) {
-        const realEntries = leaderboard.entries;
-        const nextRank = realEntries.length + 1;
-        const fakeEntriesNeeded = 20 - realEntries.length;
-        const lowestRealPoints = realEntries[realEntries.length - 1]?.totalPoints ?? 10;
-        const fakeEntries = generateFakeEntries(nextRank, fakeEntriesNeeded,lowestRealPoints);
-        
-        enhancedLeaderboard = {
-          ...leaderboard,
-          entries: [...realEntries, ...fakeEntries],
-          totalUsers: 20
-        };
+        let allEntries = [...(leaderboard?.entries || [])];
+    
+      // Add fake users if needed to reach minimum of 11 total
+      if (allEntries.length < 11) {
+        const fakeUsersNeeded = 11 - allEntries.length;
+        allEntries = [...allEntries, ...FAKE_LEADERBOARD_POOL.slice(0, fakeUsersNeeded)];
       }
-      
+
+      // Sort by points descending and assign ranks
+      allEntries.sort((a, b) => b.totalPoints - a.totalPoints);
+      allEntries.forEach((entry, index) => {
+        entry.rank = index + 1;
+      });
+
+      const enhancedLeaderboard = {
+        ...leaderboard,
+        entries: allEntries,
+        totalUsers: allEntries.length
+      };
+
+      // change user stats deppending on if new entries affected their rank
+      const userEntry = allEntries.find(entry => entry.userId == userStats.userId);
+      const updatedUserStats = userStats ? {... userStats, currentRank:userEntry.rank}:userStats;
       setLeaderboardData(enhancedLeaderboard);
-      setUserRank(userStats);
+      setUserStats(updatedUserStats);
+
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
     } finally {
@@ -186,24 +175,23 @@ export default function LeaderboardScreen() {
   };
 
   const renderUserStatsCard = () => {
-    if (!userRank) return null;
+    if (!userStats) return null;
 
-    const profileImageStyle = userRank.profilePictureURL 
+    const profileImageStyle = userStats.profilePictureURL 
       ? styles.userStatsProfileImage 
-      : [styles.userStatsProfileImage, styles.userStatsProfilePlaceholder, getProfileImage(userRank.username)];
+      : [styles.userStatsProfileImage, styles.userStatsProfilePlaceholder, getProfileImage(userStats.username)];
 
     return (
       <ThemedView style={styles.userStatsCard}>
         <View style={styles.userStatsMainRow}>
-          {/* Left side: Profile, Name, Rank */}
           <View style={styles.userStatsLeftSection}>
             <View style={styles.userStatsProfileContainer}>
-              {userRank.profilePictureURL ? (
-                <Image source={{ uri: userRank.profilePictureURL }} style={profileImageStyle} />
+              {userStats.profilePictureURL ? (
+                <Image source={{ uri: userStats.profilePictureURL }} style={profileImageStyle} />
               ) : (
                 <View style={profileImageStyle}>
                   <ThemedText style={styles.userStatsInitialsText}>
-                    {getInitials(userRank.username)}
+                    {getInitials(userStats.username)}
                   </ThemedText>
                 </View>
               )}
@@ -211,17 +199,17 @@ export default function LeaderboardScreen() {
             
             <View style={styles.userStatsBasicInfo}>
               <ThemedText style={styles.userStatsUsernameText}>
-                {userRank.username}
+                {userStats.username}
               </ThemedText>
               <View style={styles.userStatsRankRow}>
                 <ThemedText style={styles.userStatsRankText}>
-                  Rank #{userRank.currentRank}
+                  Rank #{userStats.currentRank}
                 </ThemedText>
               </View>
 
                 {/* <View style={styles.userStatsDivider} /> */}
                 <ThemedText style={styles.userStatsPointsText}>
-                  {formatPoints(userRank.totalPoints)} points
+                  {formatPoints(userStats.totalPoints)} points
                 </ThemedText>
             </View>
           </View>
@@ -230,27 +218,27 @@ export default function LeaderboardScreen() {
           <View style={styles.userStatsRightSection}>
             <View style={styles.userStatsDetailRow}>
               <ThemedText style={styles.userStatsDetailValue}>
-                {userRank.gamesPlayed}
+                {userStats.gamesPlayed}
               </ThemedText>
               <ThemedText style={styles.userStatsDetailLabel}>games</ThemedText>
             </View>
             
             <View style={styles.userStatsDetailRow}>
               <ThemedText style={styles.userStatsDetailValue}>
-                {userRank.correctResultPredictions}
+                {userStats.correctResultPredictions}
               </ThemedText>
               <ThemedText style={styles.userStatsDetailLabel}>correct result</ThemedText>
             </View>
             <View style={styles.userStatsDetailRow}>
               <ThemedText style={styles.userStatsDetailValue}>
-                {userRank.exactScorePredictions}
+                {userStats.exactScorePredictions}
               </ThemedText>
               <ThemedText style={styles.userStatsDetailLabel}>exact scores</ThemedText>
             </View>
             
             <View style={styles.userStatsDetailRow}>
               <ThemedText style={styles.userStatsDetailValue}>
-                {userRank.winPercentage?.toFixed(0)}%
+                {userStats.winPercentage?.toFixed(0)}%
               </ThemedText>
               <ThemedText style={styles.userStatsDetailLabel}>win rate</ThemedText>
             </View>

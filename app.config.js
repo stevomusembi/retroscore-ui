@@ -44,7 +44,8 @@ export default {
           // Extract the client ID from the web client ID for iOS URL scheme
           iosUrlScheme: `com.googleusercontent.apps.${process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID?.split('.')[0] || 'YOUR_CLIENT_ID'}`
         }
-      ]
+      ],
+      "expo-font"
     ],
     experiments: {
       typedRoutes: true
