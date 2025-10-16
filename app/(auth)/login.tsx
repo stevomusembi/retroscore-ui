@@ -173,12 +173,12 @@ export default function LoginScreen() {
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.subtitle}>Remember the score at the final whistle?</Text>
+          <Text style={styles.subtitle}>Do you know ball ?</Text>
         </View>
 
         {/* CTA Section */}
         <View style={styles.ctaSection}>
-          <Text style={styles.mainMessage}>Test your memory. Climb the leaderboard.</Text>
+          <Text style={styles.mainMessage}>Prove it. Dominate the leaderboard 💪 </Text>
           
           {/* Login Button */}
           <View style={styles.loginSection}>
