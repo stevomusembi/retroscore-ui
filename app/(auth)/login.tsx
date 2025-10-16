@@ -1,6 +1,5 @@
 // app/auth/login.tsx
 import { GoogleSignin, GoogleSigninButton, statusCodes } from '@react-native-google-signin/google-signin';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -15,22 +14,21 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { ThemedView } from '../components/ThemedView';
 import { useAuth } from '../contexts/authContext';
 
 const { width, height } = Dimensions.get('window');
+const isSmallScreen = height < 700;
 
 export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const { login, loginAsGuest, setIsAuthenticated } = useAuth();
-  
-  // Animation values
+  const localImage = require('../../assets/images/logo.png');
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const titleFadeAnim = useRef(new Animated.Value(0)).current;
-  const contentFadeAnim = useRef(new Animated.Value(0)).current;
-  const buttonFadeAnim = useRef(new Animated.Value(0)).current;
+  const slideUpAnim = useRef(new Animated.Value(50)).current;
 
   useEffect(() => {
-    // Configure Google Sign-In
     GoogleSignin.configure({
       webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
       offlineAccess: true,
@@ -38,20 +36,14 @@ export default function LoginScreen() {
       forceCodeForRefreshToken: true,
     });
 
-    // Staggered fade-in animation
-    Animated.sequence([
-      Animated.timing(titleFadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.timing(contentFadeAnim, {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 600,
         useNativeDriver: true,
       }),
-      Animated.timing(buttonFadeAnim, {
-        toValue: 1,
+      Animated.timing(slideUpAnim, {
+        toValue: 0,
         duration: 600,
         useNativeDriver: true,
       }),
@@ -164,79 +156,32 @@ export default function LoginScreen() {
   };
 
   return (
-    <LinearGradient
-      colors={[ '#35353544', '#000000', '#39013d7d', '#35353544']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      locations={[0, 0.2, 0.4, 0.8, 1]}
-      style={styles.container}
-    >
-      <View style={styles.contentWrapper}>
-        {/* Logo Placeholder */}
-        <Animated.View 
-          style={[
-            styles.logoContainer,
-            { opacity: titleFadeAnim }
-          ]}
-        >
-          {/* <Image
-            source={{ uri: '' }} // Add your logo URL here
+    <ThemedView style={styles.container}>
+      <Animated.View 
+        style={[
+          styles.content,
+          { 
+            opacity: fadeAnim,
+            transform: [{ translateY: slideUpAnim }]
+          }
+        ]}
+      >
+        {/* Logo Section */}
+        <View style={styles.logoSection}>
+          <Image
+            source={localImage} 
             style={styles.logo}
             resizeMode="contain"
-          /> */}
-          <View style={styles.logoPlaceholder}>
-            <Text style={styles.logoText}>LOGO</Text>
-          </View>
-        </Animated.View>
+          />
+          <Text style={styles.subtitle}>Remember the score at the final whistle?</Text>
+        </View>
 
-        {/* Header Section */}
-        <Animated.View 
-          style={[
-            styles.headerSection,
-            { opacity: titleFadeAnim }
-          ]}
-        >
-          <View style={styles.titleContainer}>
-            <Text style={styles.appTitle}>
-              Retro Sc<Text style={styles.emojiText}>⚽</Text>re
-            </Text>
-          </View>
-          <Text style={styles.subtitle}>Do you remember the score ?</Text>
-        </Animated.View>
-
-        {/* Main Content */}
-        <View style={styles.mainContent}>
-          <Animated.View 
-            style={[
-              styles.welcomeSection,
-              { opacity: contentFadeAnim }
-            ]}
-          >
-            <Text style={styles.welcomeTitle}>Welcome !</Text>
-            <Text style={styles.welcomeText}>
-              Test your ball memory 🎯 one match at a time and climb the leaderboard 🏆
-            </Text>
-          </Animated.View>
-
-          {/* Social Proof */}
-          <Animated.View 
-            style={[
-              styles.socialProofContainer,
-              { opacity: contentFadeAnim }
-            ]}
-          >
-            <Text style={styles.socialProofText}>
-              Join 100+ testing their memory
-            </Text>
-          </Animated.View>
-
-          {/* Login Options */}
-          <Animated.View 
-            style={[
-              styles.loginSection,
-              { opacity: buttonFadeAnim }
-            ]}
-          >
+        {/* CTA Section */}
+        <View style={styles.ctaSection}>
+          <Text style={styles.mainMessage}>Test your memory. Climb the leaderboard.</Text>
+          
+          {/* Login Button */}
+          <View style={styles.loginSection}>
             {Platform.OS !== 'web' ? (
               <GoogleSigninButton
                 style={styles.googleSigninButton}
@@ -246,12 +191,12 @@ export default function LoginScreen() {
                 disabled={isLoading}
               />
             ) : (
-              <View style={styles.buttonGlowContainer}>
-                <View style={styles.buttonGlow} />
+              <View style={styles.buttonContainer}>
                 <TouchableOpacity
-                  style={[styles.loginButton, styles.googleButton]}
+                  style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
                   onPress={handleWebGoogleLogin}
                   disabled={isLoading}
+                  activeOpacity={0.85}
                 >
                   {isLoading ? (
                     <ActivityIndicator color="#333333" size="small" />
@@ -268,190 +213,109 @@ export default function LoginScreen() {
                 </TouchableOpacity>
               </View>
             )}
-          </Animated.View>
+          </View>
 
-          {/* Footer Text */}
-          <Animated.View 
-            style={[
-              styles.footerSection,
-              { opacity: buttonFadeAnim }
-            ]}
-          >
-            <Text style={styles.footerText}>
-              Sign in to save your progress and compete on leaderboards
-            </Text>
-          </Animated.View>
+          <Text style={styles.footerNote}>Join 100+ players testing their memory</Text>
         </View>
-      </View>
-    </LinearGradient>
+      </Animated.View>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#000000',
   },
-  contentWrapper: {
+  content: {
     flex: 1,
-    paddingHorizontal: 30,
+    paddingHorizontal: 24,
+    justifyContent: 'space-between',
+    paddingTop: isSmallScreen ? height * 0.06 : height * 0.1,
+    paddingBottom: isSmallScreen ? 40 : 60,
   },
-  logoContainer: {
+  logoSection: {
     alignItems: 'center',
-    paddingTop: height * 0.08,
-    marginBottom: 20,
+    gap: 16,
   },
   logo: {
-    width: 80,
-    height: 80,
-  },
-  logoPlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logoText: {
-    color: 'rgba(255, 255, 255, 0.5)',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  headerSection: {
-    alignItems: 'center',
-    marginBottom: height * 0.06,
-  },
-  titleContainer: {
-    marginBottom: 12,
-  },
-  appTitle: {
-    fontSize: 52,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    letterSpacing: 2,
-    fontFamily: Platform.select({
-      ios: 'Helvetica Neue',
-      android: 'Roboto',
-      web: 'Righteous, cursive',
-    }),
-    textShadowColor: 'rgba(255, 255, 255, 0.3)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 20,
-  },
-  emojiText: {
-    fontSize: 48,
+    width: isSmallScreen ? 280 : 320,
+    height: isSmallScreen ? 280 : 320,
   },
   subtitle: {
-    fontSize: 17,
-    color: '#b8b8b8',
+    fontSize: isSmallScreen ? 15 : 16,
+    color: '#a0a0a0',
     fontStyle: 'italic',
+    letterSpacing: 0.3,
   },
-  mainContent: {
-    flex: 1,
-    justifyContent: 'space-between',
-    paddingBottom: 70,
-  },
-  welcomeSection: {
+  ctaSection: {
     alignItems: 'center',
-    marginBottom: 30,
-    paddingHorizontal: 10,
+    gap: 32,
   },
-  welcomeTitle: {
-    fontSize: 32,
+  mainMessage: {
+    fontSize: isSmallScreen ? 22 : 26,
     fontWeight: '700',
     color: '#ffffff',
-    marginBottom: 20,
+    textAlign: 'center',
+    lineHeight: isSmallScreen ? 32 : 38,
+    letterSpacing: 0.5,
     fontFamily: Platform.select({
       ios: 'Helvetica Neue',
       android: 'Roboto',
       web: 'Righteous, cursive',
     }),
   },
-  welcomeText: {
-    fontSize: 17,
-    color: '#d4d4d4',
-    textAlign: 'center',
-    lineHeight: 26,
-    paddingHorizontal: 10,
-  },
-  socialProofContainer: {
-    alignItems: 'center',
-    marginBottom: 25,
-  },
-  socialProofText: {
-    fontSize: 15,
-    color: '#9ca3af',
-    fontWeight: '500',
-    letterSpacing: 0.5,
-  },
   loginSection: {
-    paddingHorizontal: 10,
-    marginBottom: 20,
+    width: '100%',
   },
-  buttonGlowContainer: {
+  buttonContainer: {
     position: 'relative',
     width: '100%',
-  },
-  buttonGlow: {
-    position: 'absolute',
-    top: -4,
-    left: -4,
-    right: -4,
-    bottom: -4,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 16,
-    ...Platform.select({
-      web: {
-        boxShadow: '0 0 20px rgba(255, 255, 255, 0.3)',
-      },
-      default: {
-        shadowColor: '#ffffff',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.3,
-        shadowRadius: 15,
-      },
-    }),
-  },
-  googleSigninButton: {
-    width: '100%',
-    height: 56,
   },
   loginButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 18,
-    paddingHorizontal: 28,
-    borderRadius: 12,
-    minHeight: 56,
-  },
-  googleButton: {
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 14,
     backgroundColor: '#ffffff',
-    gap: 14,
+    gap: 12,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 15px rgba(255, 255, 255, 0.2)',
+        transition: 'all 0.3s ease',
+      },
+      default: {
+        shadowColor: '#ffffff',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 5,
+      },
+    }),
+  },
+  loginButtonDisabled: {
+    opacity: 0.7,
+  },
+  googleSigninButton: {
+    width: '100%',
+    height: 56,
   },
   googleLogo: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#ffffff',
+    width: 22,
+    height: 22,
   },
   loginButtonText: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '600',
     color: '#333333',
+    letterSpacing: 0.3,
   },
-  footerSection: {
-    alignItems: 'center',
-    paddingTop: 10,
-    paddingHorizontal: 20,
-  },
-  footerText: {
+  footerNote: {
     fontSize: 13,
-    color: '#9ca3af',
+    color: '#707070',
     textAlign: 'center',
-    lineHeight: 20,
+    letterSpacing: 0.2,
   },
 });
-
