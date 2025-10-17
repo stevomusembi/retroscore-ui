@@ -123,6 +123,9 @@ useFocusEffect(
         Platform.OS === 'web' ? setShowErrorModal(true): Alert.alert('Error', "Please select a result, then submit");
         return;
       }
+      if(!isEasyMode && matchResult == '' && timeIsUp){
+
+      }
    
       setLoading(true);
       setIsSubmitting(true);
@@ -148,9 +151,11 @@ useFocusEffect(
   };
 
   const handeTimeIsUp = () => {
-    if(isEasyMode && matchResult == ''){
+    console.log("callled");
+    if( matchResult == ''){
       setMatchResult('draw');
     }
+    console.log("matchResult hapa ni==>", matchResult);
     setTimeIsUp(true);
   }
 

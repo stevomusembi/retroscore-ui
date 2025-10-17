@@ -452,7 +452,7 @@ export default function SettingsScreen() {
               <ThemedText style={styles.modalTitle}>About RetroScore</ThemedText>
               <ScrollView style={styles.aboutContent}>
                 <ThemedText style={styles.aboutText}>
-                  🏆 Welcome to RetroScore - the ultimate football quiz experience!
+                  🏆 Welcome to FullTime Challenge - the ultimate football quiz experience!
                 </ThemedText>
                 <ThemedText style={styles.aboutText}>
                   Test your football knowledge with questions spanning across different leagues, 
@@ -469,7 +469,7 @@ export default function SettingsScreen() {
                 <ThemedText style={styles.aboutText}>1.0.0</ThemedText>
                 
                 <ThemedText style={styles.aboutSection}>Developer:</ThemedText>
-                <ThemedText style={styles.aboutText}>RetroScore Team</ThemedText>
+                <ThemedText style={styles.aboutText}>FTC Team</ThemedText>
               </ScrollView>
               <TouchableOpacity
                 style={styles.closeButton}

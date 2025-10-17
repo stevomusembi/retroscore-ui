@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 
 import { AuthProvider } from '@/app/contexts/authContext';
 import { useColorScheme } from '@/app/hooks/useColorScheme';
-
+import { Righteous_400Regular } from '@expo-google-fonts/righteous';
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
@@ -16,6 +16,7 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    Righteous_400Regular
   });
 
   useEffect(() => {
