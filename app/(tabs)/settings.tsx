@@ -449,7 +449,7 @@ export default function SettingsScreen() {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <ThemedText style={styles.modalTitle}>About RetroScore</ThemedText>
+              <ThemedText style={styles.modalTitle}>About FTC</ThemedText>
               <ScrollView style={styles.aboutContent}>
                 <ThemedText style={styles.aboutText}>
                   🏆 Welcome to FullTime Challenge - the ultimate football quiz experience!
