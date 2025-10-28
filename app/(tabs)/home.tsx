@@ -86,7 +86,7 @@ useFocusEffect(
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resetTrigger, setResetTrigger] = useState<any>();
   const [isEasyMode, setIsEasyMode] = useState<boolean>(false);
-  const [matchResult, setMatchResult] = useState<string>('');
+  const [matchResult, setMatchResult] = useState<any>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const switchAnim = useRef(new Animated.Value(0)).current;
   const [showErrorModal,setShowErrorModal] = useState(false);
@@ -123,8 +123,9 @@ useFocusEffect(
         Platform.OS === 'web' ? setShowErrorModal(true): Alert.alert('Error', "Please select a result, then submit");
         return;
       }
-      if(!isEasyMode && matchResult == '' && timeIsUp){
-
+      if(!isEasyMode && matchResult == '' && !timeIsUp){
+        console.log("We enttered here hard mode no match result", matchResult);
+        setMatchResult(null);
       }
    
       setLoading(true);
@@ -161,7 +162,7 @@ useFocusEffect(
 
   const handleReset = ()=> {
   setTimeIsUp(false);
-  setMatchResult('');
+  setMatchResult(null);
   setResetTrigger(Date.now());
   }
 
