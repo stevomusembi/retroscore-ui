@@ -10,9 +10,11 @@ const getBaseUrl = () => {
   // To find your IP: run `ipconfig` (Windows) or `ifconfig` (Mac/Linux)
 //   return 'http://10.0.2.2:8080/api'; // Android emulator
   // return 'http://localhost:8080/api'; // iOS simulator
-  return 'http://192.168.1.251:8080/api'; // Physical device (replace XXX with your IP)
-
+ // return 'http://192.168.1.251:8080/api'; // Physical device (replace XXX with your IP)
+   return '/api'; // web build docker nginx
 };
+
+
 // Function to get token based on platform
 const getToken = async () => {
   try {

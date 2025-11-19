@@ -23,7 +23,7 @@ import ResultSelector from '../components/ResultSelector';
 import { ScoreWheel } from '../components/ScrollWheel';
 import { ThemedText } from '../components/ThemedText';
 import retroScoreApi from '../services/api';
-import { getFullLogoUrl } from '../utils/logoUtils';
+import { debugLogoLoading, getFullLogoUrl } from '../utils/logoUtils';
 
 
 
@@ -219,7 +219,7 @@ const formatResultText = (result: string): string => {
   //used to debug if logos are loading
   useEffect(() => {
     if (matchData) {
-      // debugLogoLoading(matchData);
+      debugLogoLoading(matchData);
     }
   }, [matchData]);
 
@@ -463,11 +463,11 @@ const formatMatchDate = (dateString:string) => {
               source={{ uri: getFullLogoUrl(matchData.homeTeam.logoUrl) }}
               style={styles.logoImage}
               resizeMode="contain" // This ensures consistent sizing!
-              // onLoadStart={() => console.log('🟡 Home logo loading started')}
-              // onLoad={() => console.log('✅ Home logo loaded successfully')}
+              onLoadStart={() => console.log('🟡 Home logo loading started')}
+              onLoad={() => console.log('✅ Home logo loaded successfully')}
               onError={(error) => {
-              // console.log('❌ Home logo failed to load:', error.nativeEvent.error);
-              // console.log('🔍 Attempted URL:', getFullLogoUrl(matchData.homeTeam.logoUrl));
+              console.log('❌ Home logo failed to load:', error.nativeEvent.error);
+              console.log('🔍 Attempted URL:', getFullLogoUrl(matchData.homeTeam.logoUrl));
              
               }}
             />

@@ -54,16 +54,20 @@ export default function LoginScreen() {
     setIsLoading(true);
     
     const popup = window.open(
-      "http://localhost:8080/oauth2/authorization/google?popup=true",
+      // "http://localhost:8080/oauth2/authorization/google?popup=true",
+      "http://localhost/oauth2/authorization/google?popup=true",// for docker 
       "login",
       'width=500,height=600,scrollbars=yes,resizable=yes'
     );
     
     const messageListener = async (event: MessageEvent) => {
-      if (event.origin !== 'http://localhost:8080') {
+      // if (event.origin !== 'http://localhost:8080') {
+      //   return;
+      // }
+      //docker nginx use local host no port
+       if (event.origin !== 'http://localhost') {
         return;
       }
-      
       if (event.data.type === 'GOOGLE_LOGIN_SUCCESS') {
         try {
           const { accessToken, email, username, id, time_limit } = event.data.data;
